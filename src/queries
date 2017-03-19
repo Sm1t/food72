@@ -1,0 +1,17 @@
+http://localhost:3000/dishes /*GET*/
+http://localhost:3000/dishes/dishId /*GET*/
+http://localhost:3000/dishes/likes /*GET*//*POST*/
+http://localhost:3000/dishes/comments /*GET*//*POST*/
+http://localhost:3000/dishes/toppings /*GET*//*POST*/
+http://localhost:3000/dishes/locations /*GET*//*POST*/
+http://localhost:3000/dishes/dishId/likes /*GET*/
+http://localhost:3000/dishes/dishId/comments /*GET*/
+http://localhost:3000/dishes/dishId/toppings /*GET*/
+http://localhost:3000/dishes/dishId/locations /*GET*/
+http://localhost:3000/dishes/dishId/composition /*GET*/
+http://localhost:3000/users /*GET*/
+http://localhost:3000/users/register /*POST*/
+http://localhost:3000/users/auth /*POST*/
+http://localhost:3000/users/iserId /*GET*/
+http://localhost:3000/users/iserId /*POST*/ change fields, example body of request: {"name": "newName", "phone":"newPhone"}
+
