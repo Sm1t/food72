@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>API DOCs</title>
+	<style>
+		body {
+			font-family: sans-serif;
+		}
+		h1 {
+			margin-bottom: 5px;
+		}
+		h2 {
+			margin: 1.5em 0 0;
+		}
+		h2:first-child {
+			margin: 0;
+		}
+		p {
+			margin: 0;
+		}
+		h3 {
+			margin: .5em 0 0;
+		}
+	</style>
+</head>
+<body>
+	<h1>Food72 REST API Documentation</h1>
+	<p>It is a very simple documentation for food72 API. Every request have root path http://arusremservis.ru/</p>
+	
+	<h2>Users</h2>
+	<h3>Get all users</h3>
+	<p>GET /users</p>
+	<h3>Get user by id</h3>
+	<p>
+		GET /users/userId <br>
+		userId - The 12-byte ObjectId value. Comprises 24 characters, each has a value of [0-9 A-F a-f]
+	</p>
+	<h3>Get the user's likes or comments</h3>
+	<p>
+		GET /users/userId/likes <br>
+		GET /users/userId/likes
+	</p>
+	<h3>Save new user</h3>
+	<p>
+		POST /users/register
+		return new User and JWT-token
+	</p>
+	<h3>Authenticate user</h3>
+	<p>
+		POST /users/auth <br>
+		return JWT-token
+	</p>
+
+	<h2>Dishes</h2>
+	<h3>Get all dishes</h3>
+	<p>GET /dishes</p>
+	<h3>Get dishes by id</h3>
+	<p>
+		GET /dishes/dishId <br>
+		dishId - The 12-byte ObjectId value.
+	</p>
+	<h3>Get the likes|comments|toppings|locations|composition of dishes</h3>
+	<p>GET /dishes/dishId/likes|comments|toppings|locations|composition</p>
+	<h3>Add new dish</h3>
+	<p>
+		POST /dishes
+	</p>
+
+	<h2>Likes</h2>
+	<h3>Add like</h3>
+	<p>POST /dishes/likes</p>
+
+	<h2>Comments</h2>
+	<h3>Add comment</h3>
+	<p>POST /dishes/comment</p>
+
+	<h2>Toppings</h2>
+	<h3>Add topping</h3>
+	<p>POST /dishes/topping</p>
+
+	<h2>Locations</h2>
+	<h3>Add location</h3>
+	<p>POST /dishes/locations</p>
+</body>
+</html>

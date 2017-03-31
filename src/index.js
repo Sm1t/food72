@@ -5,10 +5,13 @@ import Promise from 'bluebird';
 import path from 'path';
 import passport from 'passport';
 import config from './config/index';
+import Passport from './config/passport';
 import users from './routes/users';
 import dishes from './routes/dishes';
-import Passport from './config/passport';
-
+import locations from './routes/locations';
+import likes from './routes/likes';
+import comments from './routes/comments';
+import toppings from './routes/toppings';
 
 
 
@@ -29,7 +32,7 @@ mongoose.Promise = Promise;
 mongoose.connect(config.database);
 // On connection
 mongoose.connection.on('connected', () => {
-	console.log('connected to database' + config.database);
+	console.log('connected to database ' + config.database);
 });
 // On Error
 mongoose.connection.on('error', (err) => {
@@ -39,6 +42,10 @@ mongoose.connection.on('error', (err) => {
 
 app.use('/users', users);
 app.use('/dishes', dishes);
+app.use('/locations', locations);
+app.use('/likes', likes);
+app.use('/comments', comments);
+app.use('/toppings', toppings);
 
 
 app.get('/', (req, res) => {

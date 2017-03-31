@@ -84,6 +84,10 @@ const DishSchema = mongoose.Schema({
 		type: Number,
 		required: true
 	},
+	rating: {
+		type: Number,
+		default: 5
+	},
 	active: {
 		type: Boolean,
 		default: true,

@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import Promise from 'bluebird';
+import _ from 'lodash';
 mongoose.Promise = Promise;
 
 const UserSchema = mongoose.Schema({
@@ -20,38 +21,16 @@ const UserSchema = mongoose.Schema({
 		type: String
 	},
 	avatar: {
-		type: String
+		type: String,
+		default: ''
 	}
 }, {
 	timestamps: true
 });
 
 
-UserSchema.methods.getUserById = async function(userId) {
-	return await User.findById({id: userId});
-}
-
-UserSchema.statics.hashPassword = async function(password) {
-	try	{
-		const salt = await bcrypt.genSalt(10);
-		const hash = await bcrypt.hash(password, salt);
-		return hash;
-	}
-
-	catch(err) {
-		throw err;
-	}
-}
-
-UserSchema.statics.comparePassword = async function(candidatePassword, hash)  {
-	console.log('try compare');
-	try {
-		const isMatch = await bcrypt.compare(candidatePassword, hash);
-		console.log(isMatch);
-		return isMatch;
-	} catch(err) {
-		throw err;
-	}
+UserSchema.methods.toJSON = function() {
+	return _.pick(this, ['_id', 'name', 'phone', 'email', 'avatar']);
 }
 
 export default mongoose.model('User', UserSchema);
