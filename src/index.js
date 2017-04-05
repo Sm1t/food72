@@ -12,6 +12,7 @@ import locations from './routes/locations';
 import likes from './routes/likes';
 import comments from './routes/comments';
 import toppings from './routes/toppings';
+import orders from './routes/orders';
 
 
 
@@ -46,6 +47,7 @@ app.use('/locations', locations);
 app.use('/likes', likes);
 app.use('/comments', comments);
 app.use('/toppings', toppings);
+app.use('/orders', orders);
 
 
 app.get('/', (req, res) => {

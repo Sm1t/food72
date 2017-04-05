@@ -1,9 +1,10 @@
 import mongoose from 'mongoose';
 import { Schema } from 'mongoose';
+import _ from 'lodash';
 
 // Product Schema
 const DishSchema = mongoose.Schema({
-	name : {
+	name: {
 		type: String,
 		required: true
 	},
@@ -97,5 +98,8 @@ const DishSchema = mongoose.Schema({
 	timestamps: true
 });
 
+/*DishSchema.methods.toJSON = function() {
+	
+}*/
 
 export default mongoose.model('Dish', DishSchema);

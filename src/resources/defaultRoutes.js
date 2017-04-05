@@ -10,7 +10,29 @@ export default class defaultRoutes {
 			const id = req.params.id;
 			const select = req.params.select;
 
-			if (!id && !select) return res.json(await model.find());
+			if (!id && !select) {
+				let modifiedSince = req.headers['if-modified-since'];
+				if (modifiedSince) {
+					try {
+						let isoDate = new Date(parseInt(modifiedSince)*1000);
+						let news = await model.find({"updatedAt": {$gt: isoDate}});
+						if (news[0]) {
+							let lastModified = news.reduce(function(a, b) {
+								return (a.updatedAt > b.updatedAt) ? a.updatedAt : b.updatedAt;
+							});
+							res.header({'Last-Modified': JSON.stringify(lastModified)});
+							return res.json(news);
+						} else {
+							return res.status(304).send();
+						}
+					} catch(err) {
+						console.log(err);
+						return res.status(500).json({success: false, msg: err.name});	
+					}	
+				} else {
+					return res.json(await model.find());
+				}
+			}
 
 			const re = new RegExp('(^[0-9a-fA-F]{24}$)');
 			if (!id.match(re)) {
