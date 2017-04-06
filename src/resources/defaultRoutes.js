@@ -18,9 +18,9 @@ export default class defaultRoutes {
 						let news = await model.find({"updatedAt": {$gt: isoDate}});
 						if (news[0]) {
 							let lastModified = news.reduce(function(a, b) {
-								return (a.updatedAt > b.updatedAt) ? a.updatedAt : b.updatedAt;
+								return (a.updatedAt > b.updatedAt) ? a : b;
 							});
-							res.header({'Last-Modified': JSON.stringify(lastModified)});
+							res.header({'Last-Modified': JSON.stringify(lastModified.updatedAt)});
 							return res.json(news);
 						} else {
 							return res.status(304).send();
@@ -68,6 +68,7 @@ export default class defaultRoutes {
 					await elem.save();
 					return res.status(201).json(elem);
 				} catch(err) {
+					console.log(err);
 					return res.status(500).json({success: false, msg: err.name});
 				}
 			}
