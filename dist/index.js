@@ -228,10 +228,10 @@ var defaultRoutes = function () {
 									}
 
 									lastModified = news.reduce(function (a, b) {
-										return a.updatedAt > b.updatedAt ? a.updatedAt : b.updatedAt;
+										return a.updatedAt > b.updatedAt ? a : b;
 									});
 
-									res.header({ 'Last-Modified': _JSON$stringify(lastModified) });
+									res.header({ 'Last-Modified': _JSON$stringify(lastModified.updatedAt) });
 									return _context.abrupt('return', res.json(news));
 
 								case 16:
@@ -346,7 +346,7 @@ var defaultRoutes = function () {
 									id = req.params.id;
 
 									if (id) {
-										_context2.next = 12;
+										_context2.next = 13;
 										break;
 									}
 
@@ -361,64 +361,66 @@ var defaultRoutes = function () {
 								case 9:
 									_context2.prev = 9;
 									_context2.t0 = _context2['catch'](2);
+
+									console.log(_context2.t0);
 									return _context2.abrupt('return', res.status(500).json({ success: false, msg: _context2.t0.name }));
 
-								case 12:
+								case 13:
 									re = new RegExp('(^[0-9a-fA-F]{24}$)');
 
 									if (id.match(re)) {
-										_context2.next = 15;
+										_context2.next = 16;
 										break;
 									}
 
 									return _context2.abrupt('return', res.status(400).json({ success: false, msg: 'Incorrect ' + modelName + ' id' }));
 
-								case 15:
-									_context2.prev = 15;
-									_context2.next = 18;
+								case 16:
+									_context2.prev = 16;
+									_context2.next = 19;
 									return model.findById(id);
 
-								case 18:
+								case 19:
 									_elem2 = _context2.sent;
 
 									if (_elem2) {
-										_context2.next = 21;
+										_context2.next = 22;
 										break;
 									}
 
 									return _context2.abrupt('return', res.status(404).json({ success: false, msg: modelName + ' not found' }));
 
-								case 21:
+								case 22:
 									if (!req.body.delete) {
-										_context2.next = 25;
+										_context2.next = 26;
 										break;
 									}
 
-									_context2.next = 24;
+									_context2.next = 25;
 									return _elem2.remove();
 
-								case 24:
+								case 25:
 									return _context2.abrupt('return', res.json({ success: true, msg: modelName + ' deleted' }));
 
-								case 25:
-									_context2.next = 27;
+								case 26:
+									_context2.next = 28;
 									return model.update({ _id: id }, { $set: req.body
 									});
 
-								case 27:
+								case 28:
 									return _context2.abrupt('return', res.json({ success: true, msg: modelName + ' updated' }));
 
-								case 30:
-									_context2.prev = 30;
-									_context2.t1 = _context2['catch'](15);
+								case 31:
+									_context2.prev = 31;
+									_context2.t1 = _context2['catch'](16);
 									return _context2.abrupt('return', res.status(500).json({ success: false, msg: _context2.t1.name }));
 
-								case 33:
+								case 34:
 								case 'end':
 									return _context2.stop();
 							}
 						}
-					}, _callee2, _this, [[2, 9], [15, 30]]);
+					}, _callee2, _this, [[2, 9], [16, 31]]);
 				}));
 
 				return function (_x3, _x4) {
