@@ -220,7 +220,7 @@ var defaultRoutes = function () {
 										break;
 									}
 
-									console.log(req.headers);
+									console.log(modifiedSince === "1970-01-01T00:00:00.000Z");
 									_context.next = 8;
 									return new Trace({ headers: req.headers }).save();
 
