@@ -14,22 +14,14 @@ export default class defaultRoutes {
 			if (!id && !select) {
 				let modifiedSince = req.headers['if-modified-since'];
 				if (modifiedSince) {
-					/*if (modifiedSince === "1970-01-01T00:00:00.000Z") {
-						const compare = true
-					} else {
-						const compare = false
-					}*/
-					const compare = (modifiedSince === "1970-01-01T00:00:00.000Z");
-					const result = Object.assign({}, req.headers, {compare: compare});
-					await (new Trace({headers: result})).save();
 					try {
 						let news = await model.find({"updatedAt": {$gt: modifiedSince}});
 						if (news[0]) {
+							console.log('da, est');
 							let lastModified = news.reduce(function(prev, candidate) {
 								return (prev.updatedAt > candidate.updatedAt) ? prev : candidate;
 							});
-							res.header({'Last-Modified': JSON.stringify(lastModified.updatedAt)});
-							return res.json(news);
+							return res.json(news).set({'Last-Modified': JSON.stringify(lastModified.updatedAt)});
 						} else {
 							return res.status(304).send();
 						}
