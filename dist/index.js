@@ -193,7 +193,7 @@ var defaultRoutes = function () {
 
 			this.router.get('/:id?/:select?', function () {
 				var _ref = _asyncToGenerator(_regeneratorRuntime.mark(function _callee(req, res) {
-					var id, select, modifiedSince, isoDate, news, lastModified, re, elem, _elem;
+					var id, select, modifiedSince, news, lastModified, re, elem, _elem;
 
 					return _regeneratorRuntime.wrap(function _callee$(_context) {
 						while (1) {
@@ -203,27 +203,26 @@ var defaultRoutes = function () {
 									select = req.params.select;
 
 									if (!(!id && !select)) {
-										_context.next = 30;
+										_context.next = 29;
 										break;
 									}
 
 									modifiedSince = req.headers['if-modified-since'];
 
 									if (!modifiedSince) {
-										_context.next = 25;
+										_context.next = 24;
 										break;
 									}
 
 									_context.prev = 5;
-									isoDate = new Date(parseInt(modifiedSince) * 1000);
-									_context.next = 9;
-									return model.find({ "updatedAt": { $gt: isoDate } });
+									_context.next = 8;
+									return model.find({ "updatedAt": { $gt: modifiedSince } });
 
-								case 9:
+								case 8:
 									news = _context.sent;
 
 									if (!news[0]) {
-										_context.next = 16;
+										_context.next = 15;
 										break;
 									}
 
@@ -234,100 +233,100 @@ var defaultRoutes = function () {
 									res.header({ 'Last-Modified': _JSON$stringify(lastModified.updatedAt) });
 									return _context.abrupt('return', res.json(news));
 
-								case 16:
+								case 15:
 									return _context.abrupt('return', res.status(304).send());
 
-								case 17:
-									_context.next = 23;
+								case 16:
+									_context.next = 22;
 									break;
 
-								case 19:
-									_context.prev = 19;
+								case 18:
+									_context.prev = 18;
 									_context.t0 = _context['catch'](5);
 
 									console.log(_context.t0);
 									return _context.abrupt('return', res.status(500).json({ success: false, msg: _context.t0.name }));
 
-								case 23:
-									_context.next = 30;
+								case 22:
+									_context.next = 29;
 									break;
 
-								case 25:
+								case 24:
 									_context.t1 = res;
-									_context.next = 28;
+									_context.next = 27;
 									return model.find();
 
-								case 28:
+								case 27:
 									_context.t2 = _context.sent;
 									return _context.abrupt('return', _context.t1.json.call(_context.t1, _context.t2));
 
-								case 30:
+								case 29:
 									re = new RegExp('(^[0-9a-fA-F]{24}$)');
 
 									if (id.match(re)) {
-										_context.next = 33;
+										_context.next = 32;
 										break;
 									}
 
 									return _context.abrupt('return', res.status(400).json({ success: false, msg: 'Incorrect ' + modelName + ' id' }));
 
-								case 33:
+								case 32:
 									if (!(id && !select)) {
-										_context.next = 46;
+										_context.next = 45;
 										break;
 									}
 
-									_context.prev = 34;
-									_context.next = 37;
+									_context.prev = 33;
+									_context.next = 36;
 									return model.findById(id);
 
-								case 37:
+								case 36:
 									elem = _context.sent;
 
 									if (elem) {
-										_context.next = 40;
+										_context.next = 39;
 										break;
 									}
 
 									return _context.abrupt('return', res.status(404).json({ success: false, msg: modelName + ' not found' }));
 
-								case 40:
+								case 39:
 									return _context.abrupt('return', res.json(elem));
 
-								case 43:
-									_context.prev = 43;
-									_context.t3 = _context['catch'](34);
+								case 42:
+									_context.prev = 42;
+									_context.t3 = _context['catch'](33);
 									return _context.abrupt('return', res.status(500).json({ success: false, msg: _context.t3.name }));
 
-								case 46:
-									_context.prev = 46;
-									_context.next = 49;
+								case 45:
+									_context.prev = 45;
+									_context.next = 48;
 									return model.findById(id);
 
-								case 49:
+								case 48:
 									_elem = _context.sent;
 
 									if (_elem['' + select]) {
-										_context.next = 52;
+										_context.next = 51;
 										break;
 									}
 
 									return _context.abrupt('return', res.json({ success: false, msg: 'Cannot select ' + select }));
 
-								case 52:
+								case 51:
 									return _context.abrupt('return', res.json(_elem['' + select]));
 
-								case 55:
-									_context.prev = 55;
-									_context.t4 = _context['catch'](46);
+								case 54:
+									_context.prev = 54;
+									_context.t4 = _context['catch'](45);
 									return _context.abrupt('return', res.status(500).json({ success: false, msg: _context.t4.name }));
 
-								case 58:
+								case 57:
 								case 'end':
 									return _context.stop();
 							}
 						}
-					}, _callee, _this, [[5, 19], [34, 43], [46, 55]]);
+					}, _callee, _this, [[5, 18], [33, 42], [45, 54]]);
 				}));
 
 				return function (_x, _x2) {
@@ -457,7 +456,7 @@ defaultUsers.router.post('', function () {
 							break;
 						}
 
-						return _context.abrupt('return', res.json({ success: false, msg: 'User already exist' }));
+						return _context.abrupt('return', res.status(400).json({ success: false, msg: 'User already exist' }));
 
 					case 6:
 						_context.prev = 6;

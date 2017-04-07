@@ -12,7 +12,7 @@ const defaultUsers = new defaultRoutes();
 // Register
 defaultUsers.router.post('', async(req, res) => {
 	const exist = await User.findOne({phone: req.body.phone});;
-	if (exist) return res.json({success: false, msg: 'User already exist'});
+	if (exist) return res.status(400).json({success: false, msg: 'User already exist'});
 
 	try {
 		const user = new User(req.body),

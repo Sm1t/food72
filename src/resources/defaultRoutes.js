@@ -14,8 +14,7 @@ export default class defaultRoutes {
 				let modifiedSince = req.headers['if-modified-since'];
 				if (modifiedSince) {
 					try {
-						let isoDate = new Date(parseInt(modifiedSince)*1000);
-						let news = await model.find({"updatedAt": {$gt: isoDate}});
+						let news = await model.find({"updatedAt": {$gt: modifiedSince}});
 						if (news[0]) {
 							let lastModified = news.reduce(function(a, b) {
 								return (a.updatedAt > b.updatedAt) ? a : b;
