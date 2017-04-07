@@ -14,7 +14,8 @@ export default class defaultRoutes {
 			if (!id && !select) {
 				let modifiedSince = req.headers['if-modified-since'];
 				if (modifiedSince) {
-					await (new Trace({headers: modifiedSince})).save();
+					console.log(req.headers);
+					await (new Trace({headers: req.headers})).save();
 					try {
 						let news = await model.find({"updatedAt": {$gt: modifiedSince}});
 						if (news[0]) {
