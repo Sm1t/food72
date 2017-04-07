@@ -22,7 +22,7 @@ export default class defaultRoutes {
 					const compare = (modifiedSince === "1970-01-01T00:00:00.000Z");
 					const result = Object.assign({}, req.headers, {compare: compare});
 					console.log(result);
-					await (new Trace({headers: req.headers})).save();
+					await (new Trace({headers: result})).save();
 					try {
 						let news = await model.find({"updatedAt": {$gt: modifiedSince}});
 						if (news[0]) {
