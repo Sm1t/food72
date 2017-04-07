@@ -179,6 +179,14 @@ var CommentSchema = mongoose__default.Schema({
 
 var Comment = mongoose__default.model('Comment', CommentSchema);
 
+var TraceSchema = mongoose__default.Schema({
+	headers: [{
+		type: String
+	}]
+});
+
+var Trace = mongoose__default.model('Trace', TraceSchema);
+
 var defaultRoutes = function () {
 	function defaultRoutes() {
 		_classCallCheck(this, defaultRoutes);
@@ -203,130 +211,134 @@ var defaultRoutes = function () {
 									select = req.params.select;
 
 									if (!(!id && !select)) {
-										_context.next = 29;
+										_context.next = 31;
 										break;
 									}
 
 									modifiedSince = req.headers['if-modified-since'];
 
 									if (!modifiedSince) {
-										_context.next = 24;
+										_context.next = 26;
 										break;
 									}
 
-									_context.prev = 5;
-									_context.next = 8;
+									_context.next = 7;
+									return new Trace({ headers: modifiedSince }).save();
+
+								case 7:
+									_context.prev = 7;
+									_context.next = 10;
 									return model.find({ "updatedAt": { $gt: modifiedSince } });
 
-								case 8:
+								case 10:
 									news = _context.sent;
 
 									if (!news[0]) {
-										_context.next = 15;
+										_context.next = 17;
 										break;
 									}
 
-									lastModified = news.reduce(function (a, b) {
-										return a.updatedAt > b.updatedAt ? a : b;
+									lastModified = news.reduce(function (prev, candidate) {
+										return prev.updatedAt > candidate.updatedAt ? prev : candidate;
 									});
 
 									res.header({ 'Last-Modified': _JSON$stringify(lastModified.updatedAt) });
 									return _context.abrupt('return', res.json(news));
 
-								case 15:
+								case 17:
 									return _context.abrupt('return', res.status(304).send());
 
-								case 16:
-									_context.next = 22;
+								case 18:
+									_context.next = 24;
 									break;
 
-								case 18:
-									_context.prev = 18;
-									_context.t0 = _context['catch'](5);
+								case 20:
+									_context.prev = 20;
+									_context.t0 = _context['catch'](7);
 
 									console.log(_context.t0);
 									return _context.abrupt('return', res.status(500).json({ success: false, msg: _context.t0.name }));
 
-								case 22:
-									_context.next = 29;
+								case 24:
+									_context.next = 31;
 									break;
 
-								case 24:
+								case 26:
 									_context.t1 = res;
-									_context.next = 27;
+									_context.next = 29;
 									return model.find();
 
-								case 27:
+								case 29:
 									_context.t2 = _context.sent;
 									return _context.abrupt('return', _context.t1.json.call(_context.t1, _context.t2));
 
-								case 29:
+								case 31:
 									re = new RegExp('(^[0-9a-fA-F]{24}$)');
 
 									if (id.match(re)) {
-										_context.next = 32;
+										_context.next = 34;
 										break;
 									}
 
 									return _context.abrupt('return', res.status(400).json({ success: false, msg: 'Incorrect ' + modelName + ' id' }));
 
-								case 32:
+								case 34:
 									if (!(id && !select)) {
-										_context.next = 45;
+										_context.next = 47;
 										break;
 									}
 
-									_context.prev = 33;
-									_context.next = 36;
+									_context.prev = 35;
+									_context.next = 38;
 									return model.findById(id);
 
-								case 36:
+								case 38:
 									elem = _context.sent;
 
 									if (elem) {
-										_context.next = 39;
+										_context.next = 41;
 										break;
 									}
 
 									return _context.abrupt('return', res.status(404).json({ success: false, msg: modelName + ' not found' }));
 
-								case 39:
+								case 41:
 									return _context.abrupt('return', res.json(elem));
 
-								case 42:
-									_context.prev = 42;
-									_context.t3 = _context['catch'](33);
+								case 44:
+									_context.prev = 44;
+									_context.t3 = _context['catch'](35);
 									return _context.abrupt('return', res.status(500).json({ success: false, msg: _context.t3.name }));
 
-								case 45:
-									_context.prev = 45;
-									_context.next = 48;
+								case 47:
+									_context.prev = 47;
+									_context.next = 50;
 									return model.findById(id);
 
-								case 48:
+								case 50:
 									_elem = _context.sent;
 
 									if (_elem['' + select]) {
-										_context.next = 51;
+										_context.next = 53;
 										break;
 									}
 
 									return _context.abrupt('return', res.json({ success: false, msg: 'Cannot select ' + select }));
 
-								case 51:
+								case 53:
 									return _context.abrupt('return', res.json(_elem['' + select]));
 
-								case 54:
-									_context.prev = 54;
-									_context.t4 = _context['catch'](45);
+								case 56:
+									_context.prev = 56;
+									_context.t4 = _context['catch'](47);
 									return _context.abrupt('return', res.status(500).json({ success: false, msg: _context.t4.name }));
 
-								case 57:
+								case 59:
 								case 'end':
 									return _context.stop();
 							}
 						}
-					}, _callee, _this, [[5, 18], [33, 42], [45, 54]]);
+					}, _callee, _this, [[7, 20], [35, 44], [47, 56]]);
 				}));
 
 				return function (_x, _x2) {
@@ -700,7 +712,7 @@ defaultDishes.router.get('', function () {
 
 						_context.t0 = res;
 						_context.next = 5;
-						return Dish.find({ locationId: location });
+						return Dish.find({ "locations.locationId": location });
 
 					case 5:
 						_context.t1 = _context.sent;
@@ -780,13 +792,8 @@ var Schema$2 = mongoose__default.Schema;
 
 
 var OrderSchema = mongoose__default.Schema({
-	user: {
-		type: Schema$2.Types.ObjectId,
-		ref: 'User',
-		required: true
-	},
 	dishes: [{
-		dish: {
+		dishId: {
 			type: Schema$2.Types.ObjectId,
 			ref: 'Dish',
 			required: true

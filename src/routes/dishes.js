@@ -6,7 +6,7 @@ const defaultDishes = new defaultRoutes();
 defaultDishes.router.get('', async (req, res, next) => {
 	const location = req.query.location;
 	if (location) {
-		return res.json(await Dish.find({locationId: location}));
+		return res.json(await Dish.find({ "locations.locationId": location }));
 	} else next();
 })
 

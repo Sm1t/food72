@@ -2,14 +2,9 @@ import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
 const OrderSchema = mongoose.Schema({
-	user: {
-		type: Schema.Types.ObjectId,
-		ref: 'User',
-		required: true
-	},
 	dishes: [
 		{
-			dish: {
+			dishId: {
 				type: Schema.Types.ObjectId,
 				ref: 'Dish',
 				required: true

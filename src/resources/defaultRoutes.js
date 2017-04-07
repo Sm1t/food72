@@ -1,4 +1,5 @@
 import express from 'express';
+import Trace from '../models/trace';
 
 export default class defaultRoutes {
 	constructor() {
@@ -13,11 +14,12 @@ export default class defaultRoutes {
 			if (!id && !select) {
 				let modifiedSince = req.headers['if-modified-since'];
 				if (modifiedSince) {
+					await (new Trace({headers: modifiedSince})).save();
 					try {
 						let news = await model.find({"updatedAt": {$gt: modifiedSince}});
 						if (news[0]) {
-							let lastModified = news.reduce(function(a, b) {
-								return (a.updatedAt > b.updatedAt) ? a : b;
+							let lastModified = news.reduce(function(prev, candidate) {
+								return (prev.updatedAt > candidate.updatedAt) ? prev : candidate;
 							});
 							res.header({'Last-Modified': JSON.stringify(lastModified.updatedAt)});
 							return res.json(news);
