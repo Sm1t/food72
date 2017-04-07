@@ -685,7 +685,7 @@ var _this$1 = undefined;
 var defaultDishes = new defaultRoutes();
 
 defaultDishes.router.get('', function () {
-	var _ref = _asyncToGenerator(_regeneratorRuntime.mark(function _callee(req, res) {
+	var _ref = _asyncToGenerator(_regeneratorRuntime.mark(function _callee(req, res, next) {
 		var location;
 		return _regeneratorRuntime.wrap(function _callee$(_context) {
 			while (1) {
@@ -693,29 +693,23 @@ defaultDishes.router.get('', function () {
 					case 0:
 						location = req.query.location;
 
-						if (location) {
-							_context.next = 7;
+						if (!location) {
+							_context.next = 9;
 							break;
 						}
 
 						_context.t0 = res;
 						_context.next = 5;
-						return Dish.find();
+						return Dish.find({ locationId: location });
 
 					case 5:
 						_context.t1 = _context.sent;
 						return _context.abrupt('return', _context.t0.json.call(_context.t0, _context.t1));
 
-					case 7:
-						_context.t2 = res;
-						_context.next = 10;
-						return Dish.find({ locationId: location });
+					case 9:
+						next();
 
 					case 10:
-						_context.t3 = _context.sent;
-						return _context.abrupt('return', _context.t2.json.call(_context.t2, _context.t3));
-
-					case 12:
 					case 'end':
 						return _context.stop();
 				}
@@ -723,7 +717,7 @@ defaultDishes.router.get('', function () {
 		}, _callee, _this$1);
 	}));
 
-	return function (_x, _x2) {
+	return function (_x, _x2, _x3) {
 		return _ref.apply(this, arguments);
 	};
 }());
