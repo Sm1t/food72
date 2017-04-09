@@ -209,14 +209,14 @@ var defaultRoutes = function () {
 									select = req.params.select;
 
 									if (!(!id && !select)) {
-										_context.next = 29;
+										_context.next = 28;
 										break;
 									}
 
 									modifiedSince = req.headers['if-modified-since'];
 
 									if (!modifiedSince) {
-										_context.next = 24;
+										_context.next = 23;
 										break;
 									}
 
@@ -228,110 +228,109 @@ var defaultRoutes = function () {
 									news = _context.sent;
 
 									if (!news[0]) {
-										_context.next = 15;
+										_context.next = 14;
 										break;
 									}
 
-									console.log('da, est');
 									lastModified = news.reduce(function (prev, candidate) {
 										return prev.updatedAt > candidate.updatedAt ? prev : candidate;
 									});
-									return _context.abrupt('return', res.json(news).set({ 'Last-Modified': _JSON$stringify(lastModified.updatedAt) }));
+									return _context.abrupt('return', res.set({ 'Last-Modified': _JSON$stringify(lastModified.updatedAt) }).json(news));
 
-								case 15:
+								case 14:
 									return _context.abrupt('return', res.status(304).send());
 
-								case 16:
-									_context.next = 22;
+								case 15:
+									_context.next = 21;
 									break;
 
-								case 18:
-									_context.prev = 18;
+								case 17:
+									_context.prev = 17;
 									_context.t0 = _context['catch'](5);
 
 									console.log(_context.t0);
 									return _context.abrupt('return', res.status(500).json({ success: false, msg: _context.t0.name }));
 
-								case 22:
-									_context.next = 29;
+								case 21:
+									_context.next = 28;
 									break;
 
-								case 24:
+								case 23:
 									_context.t1 = res;
-									_context.next = 27;
+									_context.next = 26;
 									return model.find();
 
-								case 27:
+								case 26:
 									_context.t2 = _context.sent;
 									return _context.abrupt('return', _context.t1.json.call(_context.t1, _context.t2));
 
-								case 29:
+								case 28:
 									re = new RegExp('(^[0-9a-fA-F]{24}$)');
 
 									if (id.match(re)) {
-										_context.next = 32;
+										_context.next = 31;
 										break;
 									}
 
 									return _context.abrupt('return', res.status(400).json({ success: false, msg: 'Incorrect ' + modelName + ' id' }));
 
-								case 32:
+								case 31:
 									if (!(id && !select)) {
-										_context.next = 45;
+										_context.next = 44;
 										break;
 									}
 
-									_context.prev = 33;
-									_context.next = 36;
+									_context.prev = 32;
+									_context.next = 35;
 									return model.findById(id);
 
-								case 36:
+								case 35:
 									elem = _context.sent;
 
 									if (elem) {
-										_context.next = 39;
+										_context.next = 38;
 										break;
 									}
 
 									return _context.abrupt('return', res.status(404).json({ success: false, msg: modelName + ' not found' }));
 
-								case 39:
+								case 38:
 									return _context.abrupt('return', res.json(elem));
 
-								case 42:
-									_context.prev = 42;
-									_context.t3 = _context['catch'](33);
+								case 41:
+									_context.prev = 41;
+									_context.t3 = _context['catch'](32);
 									return _context.abrupt('return', res.status(500).json({ success: false, msg: _context.t3.name }));
 
-								case 45:
-									_context.prev = 45;
-									_context.next = 48;
+								case 44:
+									_context.prev = 44;
+									_context.next = 47;
 									return model.findById(id);
 
-								case 48:
+								case 47:
 									_elem = _context.sent;
 
 									if (_elem['' + select]) {
-										_context.next = 51;
+										_context.next = 50;
 										break;
 									}
 
 									return _context.abrupt('return', res.json({ success: false, msg: 'Cannot select ' + select }));
 
-								case 51:
+								case 50:
 									return _context.abrupt('return', res.json(_elem['' + select]));
 
-								case 54:
-									_context.prev = 54;
-									_context.t4 = _context['catch'](45);
+								case 53:
+									_context.prev = 53;
+									_context.t4 = _context['catch'](44);
 									return _context.abrupt('return', res.status(500).json({ success: false, msg: _context.t4.name }));
 
-								case 57:
+								case 56:
 								case 'end':
 									return _context.stop();
 							}
 						}
-					}, _callee, _this, [[5, 18], [33, 42], [45, 54]]);
+					}, _callee, _this, [[5, 17], [32, 41], [44, 53]]);
 				}));
 
 				return function (_x, _x2) {

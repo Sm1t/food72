@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+</head>
+<body>
+	<button class="button_1">change time</button>
+	<button class="button_2">check modified</button>
+	<div class="here"></div>
+
+
+
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous">
+</script>
+
+<script>
+	$(document).ready(function() {
+		$('.button_1').click(function() {
+			$.ajax({
+				type: "POST",
+				url: "http://localhost:3000/orders/58e4fe52dadc060d24ede6be",
+				//headers: {"if-modified-since": "1970-01-01T00:00:00.000Z"},
+				data: '{"time":"coming"}',
+				contentType: "application/json; charset=utf-8",
+				dataType: 'json',
+				success: function(data) {
+					alert(data.msg);
+				}
+			});		
+		})
+		$('.button_2').click(function() {
+			$.ajax({
+				type: "GET",
+				url: "http://localhost:3000/dishes",
+				headers: {"if-modified-since": "Thu, 01 Jan 1970 00:00:00 GMT"},
+			});		
+		})
+	})
+</script>
+
+</body>
+</html>

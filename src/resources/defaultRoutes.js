@@ -15,13 +15,27 @@ export default class defaultRoutes {
 				let modifiedSince = req.headers['if-modified-since'];
 				if (modifiedSince) {
 					try {
+						modifiedSince = new Date(Date.parse(modifiedSince));
 						let news = await model.find({"updatedAt": {$gt: modifiedSince}});
 						if (news[0]) {
-							console.log('da, est');
 							let lastModified = news.reduce(function(prev, candidate) {
 								return (prev.updatedAt > candidate.updatedAt) ? prev : candidate;
 							});
-							return res.json(news).set({'Last-Modified': JSON.stringify(lastModified.updatedAt)});
+							lastModified = Date.parse(lastModified.updatedAt);
+							const opts = {
+								year: 'numeric',
+								month: 'short',
+								day: 'numeric',
+								weekday: 'short',
+								hour: 'numeric',
+								minute: 'numeric',
+								second: 'numeric',
+								timeZoneName: 'short',
+								hour12: false
+							};
+							lastModified = (new Date(lastModified)).toLocaleString('en-US', opts);
+							res.set('Last-Modified', lastModified);
+							return res.json(news);
 						} else {
 							return res.status(304).send();
 						}
@@ -87,6 +101,7 @@ export default class defaultRoutes {
 					return res.json({success: true, msg: `${modelName} deleted`});
 				}
 
+				console.log(req.body);
 				await model.update({_id: id}, {$set:
 					req.body
 				});
