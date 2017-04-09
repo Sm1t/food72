@@ -15,7 +15,6 @@ var bcrypt = _interopDefault(require('bcryptjs'));
 var _ = _interopDefault(require('lodash'));
 var _Object$assign = _interopDefault(require('babel-runtime/core-js/object/assign'));
 var jwt = _interopDefault(require('jsonwebtoken'));
-var _JSON$stringify = _interopDefault(require('babel-runtime/core-js/json/stringify'));
 var _classCallCheck = _interopDefault(require('babel-runtime/helpers/classCallCheck'));
 var _createClass = _interopDefault(require('babel-runtime/helpers/createClass'));
 
@@ -199,7 +198,7 @@ var defaultRoutes = function () {
 
 			this.router.get('/:id?/:select?', function () {
 				var _ref = _asyncToGenerator(_regeneratorRuntime.mark(function _callee(req, res) {
-					var id, select, modifiedSince, news, lastModified, re, elem, _elem;
+					var id, select, modifiedSince, news, lastModified, opts, re, elem, _elem;
 
 					return _regeneratorRuntime.wrap(function _callee$(_context) {
 						while (1) {
@@ -209,128 +208,146 @@ var defaultRoutes = function () {
 									select = req.params.select;
 
 									if (!(!id && !select)) {
-										_context.next = 28;
+										_context.next = 33;
 										break;
 									}
 
 									modifiedSince = req.headers['if-modified-since'];
 
 									if (!modifiedSince) {
-										_context.next = 23;
+										_context.next = 28;
 										break;
 									}
 
 									_context.prev = 5;
-									_context.next = 8;
+
+									modifiedSince = new Date(Date.parse(modifiedSince));
+									_context.next = 9;
 									return model.find({ "updatedAt": { $gt: modifiedSince } });
 
-								case 8:
+								case 9:
 									news = _context.sent;
 
 									if (!news[0]) {
-										_context.next = 14;
+										_context.next = 19;
 										break;
 									}
 
 									lastModified = news.reduce(function (prev, candidate) {
 										return prev.updatedAt > candidate.updatedAt ? prev : candidate;
 									});
-									return _context.abrupt('return', res.set({ 'Last-Modified': _JSON$stringify(lastModified.updatedAt) }).json(news));
 
-								case 14:
+									lastModified = Date.parse(lastModified.updatedAt);
+									opts = {
+										year: 'numeric',
+										month: 'short',
+										day: 'numeric',
+										weekday: 'short',
+										hour: 'numeric',
+										minute: 'numeric',
+										second: 'numeric',
+										timeZoneName: 'short',
+										hour12: false
+									};
+
+									lastModified = new Date(lastModified).toLocaleString('en-US', opts);
+									res.set('Last-Modified', lastModified);
+									return _context.abrupt('return', res.json(news));
+
+								case 19:
 									return _context.abrupt('return', res.status(304).send());
 
-								case 15:
-									_context.next = 21;
+								case 20:
+									_context.next = 26;
 									break;
 
-								case 17:
-									_context.prev = 17;
+								case 22:
+									_context.prev = 22;
 									_context.t0 = _context['catch'](5);
 
 									console.log(_context.t0);
 									return _context.abrupt('return', res.status(500).json({ success: false, msg: _context.t0.name }));
 
-								case 21:
-									_context.next = 28;
+								case 26:
+									_context.next = 33;
 									break;
 
-								case 23:
+								case 28:
 									_context.t1 = res;
-									_context.next = 26;
+									_context.next = 31;
 									return model.find();
 
-								case 26:
+								case 31:
 									_context.t2 = _context.sent;
 									return _context.abrupt('return', _context.t1.json.call(_context.t1, _context.t2));
 
-								case 28:
+								case 33:
 									re = new RegExp('(^[0-9a-fA-F]{24}$)');
 
 									if (id.match(re)) {
-										_context.next = 31;
+										_context.next = 36;
 										break;
 									}
 
 									return _context.abrupt('return', res.status(400).json({ success: false, msg: 'Incorrect ' + modelName + ' id' }));
 
-								case 31:
+								case 36:
 									if (!(id && !select)) {
-										_context.next = 44;
+										_context.next = 49;
 										break;
 									}
 
-									_context.prev = 32;
-									_context.next = 35;
+									_context.prev = 37;
+									_context.next = 40;
 									return model.findById(id);
 
-								case 35:
+								case 40:
 									elem = _context.sent;
 
 									if (elem) {
-										_context.next = 38;
+										_context.next = 43;
 										break;
 									}
 
 									return _context.abrupt('return', res.status(404).json({ success: false, msg: modelName + ' not found' }));
 
-								case 38:
+								case 43:
 									return _context.abrupt('return', res.json(elem));
 
-								case 41:
-									_context.prev = 41;
-									_context.t3 = _context['catch'](32);
+								case 46:
+									_context.prev = 46;
+									_context.t3 = _context['catch'](37);
 									return _context.abrupt('return', res.status(500).json({ success: false, msg: _context.t3.name }));
 
-								case 44:
-									_context.prev = 44;
-									_context.next = 47;
+								case 49:
+									_context.prev = 49;
+									_context.next = 52;
 									return model.findById(id);
 
-								case 47:
+								case 52:
 									_elem = _context.sent;
 
 									if (_elem['' + select]) {
-										_context.next = 50;
+										_context.next = 55;
 										break;
 									}
 
 									return _context.abrupt('return', res.json({ success: false, msg: 'Cannot select ' + select }));
 
-								case 50:
+								case 55:
 									return _context.abrupt('return', res.json(_elem['' + select]));
 
-								case 53:
-									_context.prev = 53;
-									_context.t4 = _context['catch'](44);
+								case 58:
+									_context.prev = 58;
+									_context.t4 = _context['catch'](49);
 									return _context.abrupt('return', res.status(500).json({ success: false, msg: _context.t4.name }));
 
-								case 56:
+								case 61:
 								case 'end':
 									return _context.stop();
 							}
 						}
-					}, _callee, _this, [[5, 17], [32, 41], [44, 53]]);
+					}, _callee, _this, [[5, 22], [37, 46], [49, 58]]);
 				}));
 
 				return function (_x, _x2) {
@@ -406,24 +423,26 @@ var defaultRoutes = function () {
 									return _context2.abrupt('return', res.json({ success: true, msg: modelName + ' deleted' }));
 
 								case 26:
-									_context2.next = 28;
+
+									console.log(req.body);
+									_context2.next = 29;
 									return model.update({ _id: id }, { $set: req.body
 									});
 
-								case 28:
+								case 29:
 									return _context2.abrupt('return', res.json({ success: true, msg: modelName + ' updated' }));
 
-								case 31:
-									_context2.prev = 31;
+								case 32:
+									_context2.prev = 32;
 									_context2.t1 = _context2['catch'](16);
 									return _context2.abrupt('return', res.status(500).json({ success: false, msg: _context2.t1.name }));
 
-								case 34:
+								case 35:
 								case 'end':
 									return _context2.stop();
 							}
 						}
-					}, _callee2, _this, [[2, 9], [16, 31]]);
+					}, _callee2, _this, [[2, 9], [16, 32]]);
 				}));
 
 				return function (_x3, _x4) {
@@ -684,47 +703,14 @@ var DishSchema = mongoose__default.Schema({
 
 var Dish = mongoose__default.model('Dish', DishSchema);
 
-var _this$1 = undefined;
-
 var defaultDishes = new defaultRoutes();
 
-defaultDishes.router.get('', function () {
-	var _ref = _asyncToGenerator(_regeneratorRuntime.mark(function _callee(req, res, next) {
-		var location;
-		return _regeneratorRuntime.wrap(function _callee$(_context) {
-			while (1) {
-				switch (_context.prev = _context.next) {
-					case 0:
-						location = req.query.location;
-
-						if (!location) {
-							_context.next = 9;
-							break;
-						}
-
-						_context.t0 = res;
-						_context.next = 5;
-						return Dish.find({ "locations.locationId": location });
-
-					case 5:
-						_context.t1 = _context.sent;
-						return _context.abrupt('return', _context.t0.json.call(_context.t0, _context.t1));
-
-					case 9:
-						next();
-
-					case 10:
-					case 'end':
-						return _context.stop();
-				}
-			}
-		}, _callee, _this$1);
-	}));
-
-	return function (_x, _x2, _x3) {
-		return _ref.apply(this, arguments);
-	};
-}());
+/*defaultDishes.router.get('', async (req, res, next) => {
+	const location = req.query.location;
+	if (location) {
+		return res.json(await Dish.find({ "locations.locationId": location }));
+	} else next();
+})*/
 
 defaultDishes.init(Dish, 'dishes');
 
@@ -826,7 +812,7 @@ var OrderSchema = mongoose__default.Schema({
 var Order = mongoose__default.model('Order', OrderSchema);
 
 var defaultOrders = new defaultRoutes();
-defaultOrders.init(Order, 'likes');
+defaultOrders.init(Order, 'orders');
 
 var orders = defaultOrders.router;
 
@@ -839,6 +825,7 @@ app.use(cors());
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/static', express.static(path.join(__dirname, 'jenya')));
 var port = 3000;
 
 mongoose__default.Promise = Promise;
