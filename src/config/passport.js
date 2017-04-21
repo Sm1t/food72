@@ -1,6 +1,7 @@
 const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
 import User from '../models/user';
+import Employee from '../models/employee';
 import config from '../config/index';
 
 export default async function Passport(passport){
@@ -9,9 +10,14 @@ export default async function Passport(passport){
 	opts.secretOrKey = config.secret;
 	passport.use(new JwtStrategy(opts, async (jwt_payload, done) => {
 		try {
-			console.log(jwt_payload);
-			const user = await User.findOne({phone: jwt_payload.phone});
-			console.log(user);
+			if (jwt_payload.login) {
+				var user = await Employee.findOne({login: jwt_payload.login});
+			}
+			if (jwt_payload.phone) {
+				var user = await User.findOne({phone: jwt_payload.phone});
+			}
+			
+			//console.log(user);
 			if (user) {
 				return done(null, user);
 			} else done(null, false);

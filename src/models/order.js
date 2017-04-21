@@ -2,6 +2,11 @@ import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
 const OrderSchema = mongoose.Schema({
+	userId: {
+		type: Schema.Types.ObjectId,
+		ref: 'User',
+		required: true
+	},
 	dishes: [
 		{
 			dishId: {

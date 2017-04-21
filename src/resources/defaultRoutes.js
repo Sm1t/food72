@@ -1,12 +1,20 @@
 import express from 'express';
-import Trace from '../models/trace';
+import passport from 'passport';
+import access from '../middleware/access';
 
 export default class defaultRoutes {
 	constructor() {
 		this.router = express.Router();
 	}
-	
+
 	init(model, modelName) {
+		this.initGet(model, modelName);
+		this.initPost(model, modelName);
+		this.initChange(model, modelName);
+		this.initDelete(model, modelName);
+	}
+	
+	initGet(model, modelName) {
 		this.router.get('/:id?/:select?', async(req, res) => {
 			const id = req.params.id;
 			const select = req.params.select;
@@ -70,23 +78,32 @@ export default class defaultRoutes {
 			} catch(err) {
 				return res.status(500).json({success: false, msg: err.name});
 			}
-			
 		})
+	}
 
-		this.router.post('/:id?', async(req, res) => {
+	initPost(model, modelName) {
+		this.router.post('', passport.authenticate('jwt', {session: false}), access, async(req, res) => {
 			const id = req.params.id;
-
-			if (!id) {
-				try {
-					const elem = new model(req.body);
-					await elem.save();
-					return res.status(201).json(elem);
-				} catch(err) {
-					console.log(err);
-					return res.status(500).json({success: false, msg: err.name});
-				}
+			try {
+				/*if (['orders', 'likes', 'comments'].indexOf(modelName) != -1) {
+					var elem = new model(Object.assign({}, req.body, {userId: req.user.id}));
+				} else {
+					var elem = new model(req.body);
+				}*/
+				const elem = new model(req.body);
+				
+				await elem.save();
+				return res.status(201).json(elem);
+			} catch(err) {
+				console.log(err);
+				return res.status(500).json({success: false, msg: err.name});	
 			}
+		})
+	}
 
+	initChange(model, modelNmae) {
+		this.router.post('/:id', passport.authenticate('jwt', {session: false}), access, async(req, res) => {
+			const id = req.params.id;
 			const re = new RegExp('(^[0-9a-fA-F]{24}$)');
 			if (!id.match(re)) {
 				return res.status(400).json({success: false, msg: `Incorrect ${modelName} id`});
@@ -95,17 +112,29 @@ export default class defaultRoutes {
 			try {
 				const elem = await model.findById(id);
 				if (!elem) return res.status(404).json({success:false, msg: `${modelName} not found`});
-
-				if (req.body.delete) {
-					await elem.remove();
-					return res.json({success: true, msg: `${modelName} deleted`});
-				}
-
-				console.log(req.body);
 				await model.update({_id: id}, {$set:
 					req.body
 				});
 				return res.json({success: true, msg: `${modelName} updated`});
+			} catch(err) {
+				return res.status(500).json({success: false, msg: err.name});
+			}
+		})
+	}
+
+	initDelete(model, modelName) {
+		this.router.post('/:id', passport.authenticate('jwt', {session: false}), access, async(req, res) => {
+			const id = req.params.id;
+			const re = new RegExp('(^[0-9a-fA-F]{24}$)');
+			if (!id.match(re)) {
+				return res.status(400).json({success: false, msg: `Incorrect ${modelName} id`});
+			}
+
+			try {
+				const elem = await model.findById(id);
+				if (!elem) return res.status(404).json({success:false, msg: `${modelName} not found`});
+				await elem.remove();
+				return res.json({success: true, msg: `${modelName} deleted`});
 			} catch(err) {
 				return res.status(500).json({success: false, msg: err.name});
 			}

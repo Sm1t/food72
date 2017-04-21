@@ -55,6 +55,42 @@ UserSchema.methods.toJSON = function () {
 
 var User = mongoose__default.model('User', UserSchema);
 
+var EmployeeSchema = mongoose__default.Schema({
+	name: {
+		type: String,
+		required: true
+	},
+	surname: {
+		type: String,
+		required: true
+	},
+	position: {
+		type: String,
+		required: true
+	},
+	login: {
+		type: String,
+		required: true
+	},
+	password: {
+		type: String,
+		required: true
+	},
+	role: {
+		type: String,
+		required: true,
+		default: 'employee'
+	}
+}, {
+	timestamps: true
+});
+
+EmployeeSchema.methods.toJSON = function () {
+	return _.pick(this, ['_id', 'name', 'surname', 'position']);
+};
+
+var Employee = mongoose__default.model('Employee', EmployeeSchema);
+
 var JwtStrategy = require('passport-jwt').Strategy;
 var ExtractJwt = require('passport-jwt').ExtractJwt;
 var Passport = (function () {
@@ -79,40 +115,55 @@ var Passport = (function () {
 											case 0:
 												_context.prev = 0;
 
-												console.log(jwt_payload);
+												if (!jwt_payload.login) {
+													_context.next = 5;
+													break;
+												}
+
 												_context.next = 4;
-												return User.findOne({ phone: jwt_payload.phone });
+												return Employee.findOne({ login: jwt_payload.login });
 
 											case 4:
 												user = _context.sent;
 
-												console.log(user);
+											case 5:
+												if (!jwt_payload.phone) {
+													_context.next = 9;
+													break;
+												}
 
+												_context.next = 8;
+												return User.findOne({ phone: jwt_payload.phone });
+
+											case 8:
+												user = _context.sent;
+
+											case 9:
 												if (!user) {
-													_context.next = 10;
+													_context.next = 13;
 													break;
 												}
 
 												return _context.abrupt('return', done(null, user));
 
-											case 10:
+											case 13:
 												done(null, false);
 
-											case 11:
-												_context.next = 16;
+											case 14:
+												_context.next = 19;
 												break;
 
-											case 13:
-												_context.prev = 13;
+											case 16:
+												_context.prev = 16;
 												_context.t0 = _context['catch'](0);
 												return _context.abrupt('return', done(_context.t0, false));
 
-											case 16:
+											case 19:
 											case 'end':
 												return _context.stop();
 										}
 									}
-								}, _callee, _this, [[0, 13]]);
+								}, _callee, _this, [[0, 16]]);
 							}));
 
 							return function (_x2, _x3) {
@@ -139,12 +190,12 @@ var Schema$1 = mongoose__default.Schema;
 
 
 var LikeSchema = mongoose__default.Schema({
-	dish: {
+	dishId: {
 		type: Schema$1.Types.ObjectId,
 		ref: 'Dish',
 		required: true
 	},
-	user: {
+	userId: {
 		type: Schema$1.Types.ObjectId,
 		ref: 'User',
 		required: true
@@ -159,7 +210,7 @@ var CommentSchema = mongoose__default.Schema({
 		ref: 'Dish',
 		required: true
 	},
-	user: {
+	userId: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: 'User',
 		required: true
@@ -178,11 +229,30 @@ var CommentSchema = mongoose__default.Schema({
 
 var Comment = mongoose__default.model('Comment', CommentSchema);
 
-var TraceSchema = mongoose__default.Schema({
-	headers: {}
-});
+var access = (function (req, res, next) {
+	var userAccess = ['/likes', '/comments', '/orders'];
+	var employeeAccess = ['/dishes', '/toppings', '/locations'];
+	var adminAccess = ['/employees'];
 
-mongoose__default.model('Trace', TraceSchema);
+	if (req.user) {
+		if (adminAccess.indexOf(req.originalUrl) != -1) {
+			if (req.user.role === 'admin') return next();
+			return res.status(403).json({ success: false, msg: 'Access denied' });
+		}
+
+		if (employeeAccess.indexOf(req.originalUrl) != -1) {
+			if (req.user.login) return next();
+			return res.status(403).json({ success: false, msg: 'Access denied' });
+		}
+
+		if (userAccess.indexOf(req.originalUrl) != -1) {
+			if (req.user.phone) return next();
+			return res.status(401).json({ success: false, msg: 'Unauthorized' });
+		}
+	}
+
+	return res.status(403).json({ success: false, msg: 'Access denied' });
+});
 
 var defaultRoutes = function () {
 	function defaultRoutes() {
@@ -194,6 +264,14 @@ var defaultRoutes = function () {
 	_createClass(defaultRoutes, [{
 		key: 'init',
 		value: function init(model, modelName) {
+			this.initGet(model, modelName);
+			this.initPost(model, modelName);
+			this.initChange(model, modelName);
+			this.initDelete(model, modelName);
+		}
+	}, {
+		key: 'initGet',
+		value: function initGet(model, modelName) {
 			var _this = this;
 
 			this.router.get('/:id?/:select?', function () {
@@ -354,99 +432,176 @@ var defaultRoutes = function () {
 					return _ref.apply(this, arguments);
 				};
 			}());
+		}
+	}, {
+		key: 'initPost',
+		value: function initPost(model, modelName) {
+			var _this2 = this;
 
-			this.router.post('/:id?', function () {
+			this.router.post('', passport.authenticate('jwt', { session: false }), access, function () {
 				var _ref2 = _asyncToGenerator(_regeneratorRuntime.mark(function _callee2(req, res) {
-					var id, elem, re, _elem2;
-
+					var id, elem;
 					return _regeneratorRuntime.wrap(function _callee2$(_context2) {
 						while (1) {
 							switch (_context2.prev = _context2.next) {
 								case 0:
 									id = req.params.id;
+									_context2.prev = 1;
 
-									if (id) {
-										_context2.next = 13;
-										break;
-									}
-
-									_context2.prev = 2;
+									/*if (['orders', 'likes', 'comments'].indexOf(modelName) != -1) {
+         	var elem = new model(Object.assign({}, req.body, {userId: req.user.id}));
+         } else {
+         	var elem = new model(req.body);
+         }*/
 									elem = new model(req.body);
-									_context2.next = 6;
+									_context2.next = 5;
 									return elem.save();
 
-								case 6:
+								case 5:
 									return _context2.abrupt('return', res.status(201).json(elem));
 
-								case 9:
-									_context2.prev = 9;
-									_context2.t0 = _context2['catch'](2);
+								case 8:
+									_context2.prev = 8;
+									_context2.t0 = _context2['catch'](1);
 
 									console.log(_context2.t0);
 									return _context2.abrupt('return', res.status(500).json({ success: false, msg: _context2.t0.name }));
 
-								case 13:
-									re = new RegExp('(^[0-9a-fA-F]{24}$)');
-
-									if (id.match(re)) {
-										_context2.next = 16;
-										break;
-									}
-
-									return _context2.abrupt('return', res.status(400).json({ success: false, msg: 'Incorrect ' + modelName + ' id' }));
-
-								case 16:
-									_context2.prev = 16;
-									_context2.next = 19;
-									return model.findById(id);
-
-								case 19:
-									_elem2 = _context2.sent;
-
-									if (_elem2) {
-										_context2.next = 22;
-										break;
-									}
-
-									return _context2.abrupt('return', res.status(404).json({ success: false, msg: modelName + ' not found' }));
-
-								case 22:
-									if (!req.body.delete) {
-										_context2.next = 26;
-										break;
-									}
-
-									_context2.next = 25;
-									return _elem2.remove();
-
-								case 25:
-									return _context2.abrupt('return', res.json({ success: true, msg: modelName + ' deleted' }));
-
-								case 26:
-
-									console.log(req.body);
-									_context2.next = 29;
-									return model.update({ _id: id }, { $set: req.body
-									});
-
-								case 29:
-									return _context2.abrupt('return', res.json({ success: true, msg: modelName + ' updated' }));
-
-								case 32:
-									_context2.prev = 32;
-									_context2.t1 = _context2['catch'](16);
-									return _context2.abrupt('return', res.status(500).json({ success: false, msg: _context2.t1.name }));
-
-								case 35:
+								case 12:
 								case 'end':
 									return _context2.stop();
 							}
 						}
-					}, _callee2, _this, [[2, 9], [16, 32]]);
+					}, _callee2, _this2, [[1, 8]]);
 				}));
 
 				return function (_x3, _x4) {
 					return _ref2.apply(this, arguments);
+				};
+			}());
+		}
+	}, {
+		key: 'initChange',
+		value: function initChange(model, modelNmae) {
+			var _this3 = this;
+
+			this.router.post('/:id', passport.authenticate('jwt', { session: false }), access, function () {
+				var _ref3 = _asyncToGenerator(_regeneratorRuntime.mark(function _callee3(req, res) {
+					var id, re, elem;
+					return _regeneratorRuntime.wrap(function _callee3$(_context3) {
+						while (1) {
+							switch (_context3.prev = _context3.next) {
+								case 0:
+									id = req.params.id;
+									re = new RegExp('(^[0-9a-fA-F]{24}$)');
+
+									if (id.match(re)) {
+										_context3.next = 4;
+										break;
+									}
+
+									return _context3.abrupt('return', res.status(400).json({ success: false, msg: 'Incorrect ' + modelName + ' id' }));
+
+								case 4:
+									_context3.prev = 4;
+									_context3.next = 7;
+									return model.findById(id);
+
+								case 7:
+									elem = _context3.sent;
+
+									if (elem) {
+										_context3.next = 10;
+										break;
+									}
+
+									return _context3.abrupt('return', res.status(404).json({ success: false, msg: modelName + ' not found' }));
+
+								case 10:
+									_context3.next = 12;
+									return model.update({ _id: id }, { $set: req.body
+									});
+
+								case 12:
+									return _context3.abrupt('return', res.json({ success: true, msg: modelName + ' updated' }));
+
+								case 15:
+									_context3.prev = 15;
+									_context3.t0 = _context3['catch'](4);
+									return _context3.abrupt('return', res.status(500).json({ success: false, msg: _context3.t0.name }));
+
+								case 18:
+								case 'end':
+									return _context3.stop();
+							}
+						}
+					}, _callee3, _this3, [[4, 15]]);
+				}));
+
+				return function (_x5, _x6) {
+					return _ref3.apply(this, arguments);
+				};
+			}());
+		}
+	}, {
+		key: 'initDelete',
+		value: function initDelete(model, modelName) {
+			var _this4 = this;
+
+			this.router.post('/:id', passport.authenticate('jwt', { session: false }), access, function () {
+				var _ref4 = _asyncToGenerator(_regeneratorRuntime.mark(function _callee4(req, res) {
+					var id, re, elem;
+					return _regeneratorRuntime.wrap(function _callee4$(_context4) {
+						while (1) {
+							switch (_context4.prev = _context4.next) {
+								case 0:
+									id = req.params.id;
+									re = new RegExp('(^[0-9a-fA-F]{24}$)');
+
+									if (id.match(re)) {
+										_context4.next = 4;
+										break;
+									}
+
+									return _context4.abrupt('return', res.status(400).json({ success: false, msg: 'Incorrect ' + modelName + ' id' }));
+
+								case 4:
+									_context4.prev = 4;
+									_context4.next = 7;
+									return model.findById(id);
+
+								case 7:
+									elem = _context4.sent;
+
+									if (elem) {
+										_context4.next = 10;
+										break;
+									}
+
+									return _context4.abrupt('return', res.status(404).json({ success: false, msg: modelName + ' not found' }));
+
+								case 10:
+									_context4.next = 12;
+									return elem.remove();
+
+								case 12:
+									return _context4.abrupt('return', res.json({ success: true, msg: modelName + ' deleted' }));
+
+								case 15:
+									_context4.prev = 15;
+									_context4.t0 = _context4['catch'](4);
+									return _context4.abrupt('return', res.status(500).json({ success: false, msg: _context4.t0.name }));
+
+								case 18:
+								case 'end':
+									return _context4.stop();
+							}
+						}
+					}, _callee4, _this4, [[4, 15]]);
+				}));
+
+				return function (_x7, _x8) {
+					return _ref4.apply(this, arguments);
 				};
 			}());
 		}
@@ -582,13 +737,13 @@ defaultUsers.router.post('/authenticate', function () {
 	};
 }());
 
-defaultUsers.router.get('/profile', passport.authenticate('jwt', { session: false }), function () {
+defaultUsers.router.post('/profile', passport.authenticate('jwt', { session: false }), function () {
 	var _ref3 = _asyncToGenerator(_regeneratorRuntime.mark(function _callee3(req, res) {
 		return _regeneratorRuntime.wrap(function _callee3$(_context3) {
 			while (1) {
 				switch (_context3.prev = _context3.next) {
 					case 0:
-						res.json({ user: req.user });
+						res.json(['/dishes', 'toppings', '/locations'].indexOf(req.path));
 
 					case 1:
 					case 'end':
@@ -688,6 +843,11 @@ var DishSchema = mongoose__default.Schema({
 		type: Number,
 		default: 5
 	},
+	likesCount: {
+		type: Number,
+		required: true,
+		default: 0
+	},
 	active: {
 		type: Boolean,
 		default: true,
@@ -697,20 +857,49 @@ var DishSchema = mongoose__default.Schema({
 	timestamps: true
 });
 
-/*DishSchema.methods.toJSON = function() {
-	
-}*/
-
 var Dish = mongoose__default.model('Dish', DishSchema);
+
+var _this$1 = undefined;
 
 var defaultDishes = new defaultRoutes();
 
-/*defaultDishes.router.get('', async (req, res, next) => {
-	const location = req.query.location;
-	if (location) {
-		return res.json(await Dish.find({ "locations.locationId": location }));
-	} else next();
-})*/
+defaultDishes.router.get('', function () {
+	var _ref = _asyncToGenerator(_regeneratorRuntime.mark(function _callee(req, res, next) {
+		var location;
+		return _regeneratorRuntime.wrap(function _callee$(_context) {
+			while (1) {
+				switch (_context.prev = _context.next) {
+					case 0:
+						location = req.query.location;
+
+						if (!location) {
+							_context.next = 9;
+							break;
+						}
+
+						_context.t0 = res;
+						_context.next = 5;
+						return Dish.find({ "locations.locationId": location });
+
+					case 5:
+						_context.t1 = _context.sent;
+						return _context.abrupt('return', _context.t0.json.call(_context.t0, _context.t1));
+
+					case 9:
+						next();
+
+					case 10:
+					case 'end':
+						return _context.stop();
+				}
+			}
+		}, _callee, _this$1);
+	}));
+
+	return function (_x, _x2, _x3) {
+		return _ref.apply(this, arguments);
+	};
+}());
 
 defaultDishes.init(Dish, 'dishes');
 
@@ -734,7 +923,52 @@ defaultLocations.init(Location, 'locations');
 
 var locations = defaultLocations.router;
 
+var _this$2 = undefined;
+
 var defaultLikes = new defaultRoutes();
+
+defaultLikes.router.post('', function () {
+	var _ref = _asyncToGenerator(_regeneratorRuntime.mark(function _callee(req, res) {
+		var elem, test;
+		return _regeneratorRuntime.wrap(function _callee$(_context) {
+			while (1) {
+				switch (_context.prev = _context.next) {
+					case 0:
+						_context.prev = 0;
+						elem = new Like(req.body);
+						_context.next = 4;
+						return elem.save();
+
+					case 4:
+						_context.next = 6;
+						return Dish.find({ _id: elem.dishId });
+
+					case 6:
+						test = _context.sent;
+
+						console.log(test);
+						return _context.abrupt('return', res.status(201).json(elem));
+
+					case 11:
+						_context.prev = 11;
+						_context.t0 = _context['catch'](0);
+
+						console.log(_context.t0);
+						return _context.abrupt('return', res.status(500).json({ success: false, msg: _context.t0.name }));
+
+					case 15:
+					case 'end':
+						return _context.stop();
+				}
+			}
+		}, _callee, _this$2, [[0, 11]]);
+	}));
+
+	return function (_x, _x2) {
+		return _ref.apply(this, arguments);
+	};
+}());
+
 defaultLikes.init(Like, 'likes');
 
 var likes = defaultLikes.router;
@@ -770,6 +1004,11 @@ var Schema$2 = mongoose__default.Schema;
 
 
 var OrderSchema = mongoose__default.Schema({
+	userId: {
+		type: Schema$2.Types.ObjectId,
+		ref: 'User',
+		required: true
+	},
 	dishes: [{
 		dishId: {
 			type: Schema$2.Types.ObjectId,
@@ -816,6 +1055,158 @@ defaultOrders.init(Order, 'orders');
 
 var orders = defaultOrders.router;
 
+var _this$3 = undefined;
+
+var defaultEmployees = new defaultRoutes();
+
+// Register
+defaultEmployees.router.post('', function () {
+	var _ref = _asyncToGenerator(_regeneratorRuntime.mark(function _callee(req, res) {
+		var exist, employee, login, salt, hash, token;
+		return _regeneratorRuntime.wrap(function _callee$(_context) {
+			while (1) {
+				switch (_context.prev = _context.next) {
+					case 0:
+						_context.next = 2;
+						return Employee.findOne({ login: req.body.login });
+
+					case 2:
+						exist = _context.sent;
+						;
+
+						if (!exist) {
+							_context.next = 6;
+							break;
+						}
+
+						return _context.abrupt('return', res.status(400).json({ success: false, msg: 'Employee already exist' }));
+
+					case 6:
+						_context.prev = 6;
+						employee = new Employee(req.body);
+						login = employee.login;
+						_context.next = 11;
+						return bcrypt.genSalt(10);
+
+					case 11:
+						salt = _context.sent;
+						_context.next = 14;
+						return bcrypt.hash(employee.password, salt);
+
+					case 14:
+						hash = _context.sent;
+
+						employee.password = hash;
+						employee.save();
+						token = jwt.sign({ login: login }, config.secret, { expiresIn: 604800 });
+						return _context.abrupt('return', res.status(201).json(_Object$assign({}, employee.toJSON(), { token: 'JWT ' + token })));
+
+					case 21:
+						_context.prev = 21;
+						_context.t0 = _context['catch'](6);
+
+						console.log(_context.t0);
+						return _context.abrupt('return', res.status(500).json({ success: false, msg: _context.t0.name }));
+
+					case 25:
+					case 'end':
+						return _context.stop();
+				}
+			}
+		}, _callee, _this$3, [[6, 21]]);
+	}));
+
+	return function (_x, _x2) {
+		return _ref.apply(this, arguments);
+	};
+}());
+
+// Authenticate
+defaultEmployees.router.post('/login', function () {
+	var _ref2 = _asyncToGenerator(_regeneratorRuntime.mark(function _callee2(req, res) {
+		var login, password, employee, token;
+		return _regeneratorRuntime.wrap(function _callee2$(_context2) {
+			while (1) {
+				switch (_context2.prev = _context2.next) {
+					case 0:
+						login = req.body.login, password = req.body.password;
+						_context2.next = 3;
+						return Employee.findOne({ login: login });
+
+					case 3:
+						employee = _context2.sent;
+
+						if (employee) {
+							_context2.next = 6;
+							break;
+						}
+
+						return _context2.abrupt('return', res.status(404).json({ success: false, msg: "Employee not found" }));
+
+					case 6:
+						_context2.prev = 6;
+						_context2.next = 9;
+						return bcrypt.compare(password, employee.password);
+
+					case 9:
+						if (!_context2.sent) {
+							_context2.next = 14;
+							break;
+						}
+
+						token = jwt.sign({ login: login }, config.secret, { expiresIn: 604800 });
+						return _context2.abrupt('return', res.json(_Object$assign({}, employee.toJSON(), { token: 'JWT ' + token })));
+
+					case 14:
+						return _context2.abrupt('return', res.status(403).json({ success: false, msg: 'Wrong password' }));
+
+					case 15:
+						_context2.next = 20;
+						break;
+
+					case 17:
+						_context2.prev = 17;
+						_context2.t0 = _context2['catch'](6);
+						return _context2.abrupt('return', res.status(500).json({ success: false, msg: _context2.t0.name }));
+
+					case 20:
+					case 'end':
+						return _context2.stop();
+				}
+			}
+		}, _callee2, _this$3, [[6, 17]]);
+	}));
+
+	return function (_x3, _x4) {
+		return _ref2.apply(this, arguments);
+	};
+}());
+
+defaultEmployees.router.post('/profile', passport.authenticate('jwt', { session: false }), function () {
+	var _ref3 = _asyncToGenerator(_regeneratorRuntime.mark(function _callee3(req, res) {
+		return _regeneratorRuntime.wrap(function _callee3$(_context3) {
+			while (1) {
+				switch (_context3.prev = _context3.next) {
+					case 0:
+						res.json(req.user);
+
+					case 1:
+					case 'end':
+						return _context3.stop();
+				}
+			}
+		}, _callee3, _this$3);
+	}));
+
+	return function (_x5, _x6) {
+		return _ref3.apply(this, arguments);
+	};
+}());
+
+defaultEmployees.init(Employee, 'employees');
+
+var employees = defaultEmployees.router;
+
 var app = express();
 var bodyParser = require('body-parser');
 Passport(passport);
@@ -847,6 +1238,7 @@ app.use('/likes', likes);
 app.use('/comments', comments);
 app.use('/toppings', toppings);
 app.use('/orders', orders);
+app.use('/employees', employees);
 
 app.get('/', function (req, res) {
 	res.send('dratuti');

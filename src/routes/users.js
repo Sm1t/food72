@@ -49,8 +49,8 @@ defaultUsers.router.post('/authenticate', async(req, res) => {
 	}
 })
 
-defaultUsers.router.get('/profile', passport.authenticate('jwt', {session: false}), async (req, res) => {
-	res.json({user: req.user});
+defaultUsers.router.post('/profile', passport.authenticate('jwt', {session: false}), async (req, res) => {
+	res.json(['/dishes', 'toppings', '/locations'].indexOf(req.path));
 })
 
 defaultUsers.init(User, 'user');

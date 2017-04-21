@@ -13,6 +13,7 @@ import likes from './routes/likes';
 import comments from './routes/comments';
 import toppings from './routes/toppings';
 import orders from './routes/orders';
+import employees from './routes/employees';
 
 
 
@@ -49,6 +50,7 @@ app.use('/likes', likes);
 app.use('/comments', comments);
 app.use('/toppings', toppings);
 app.use('/orders', orders);
+app.use('/employees', employees);
 
 
 app.get('/', (req, res) => {

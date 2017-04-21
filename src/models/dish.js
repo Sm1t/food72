@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import Like from './like';
 import { Schema } from 'mongoose';
 import _ from 'lodash';
 
@@ -89,6 +90,11 @@ const DishSchema = mongoose.Schema({
 		type: Number,
 		default: 5
 	},
+	likesCount: {
+		type: Number,
+		required: true,
+		default: 0
+	},
 	active: {
 		type: Boolean,
 		default: true,
@@ -97,9 +103,5 @@ const DishSchema = mongoose.Schema({
 }, {
 	timestamps: true
 });
-
-/*DishSchema.methods.toJSON = function() {
-	
-}*/
 
 export default mongoose.model('Dish', DishSchema);
