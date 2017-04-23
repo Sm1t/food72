@@ -1,6 +1,7 @@
 import express from 'express';
 import passport from 'passport';
 import access from '../middleware/access';
+import checkId from '../middleware/checkId';
 
 export default class defaultRoutes {
 	constructor() {
@@ -15,7 +16,7 @@ export default class defaultRoutes {
 	}
 	
 	initGet(model, modelName) {
-		this.router.get('/:id?/:select?', async(req, res) => {
+		this.router.get('/:id?/:select?', passport.authenticate('jwt', {session: false}), access, async(req, res) => {
 			const id = req.params.id;
 			const select = req.params.select;
 
@@ -48,10 +49,12 @@ export default class defaultRoutes {
 							return res.status(304).send();
 						}
 					} catch(err) {
-						console.log(err);
-						return res.status(500).json({success: false, msg: err.name});	
+						next(err);	
 					}	
 				} else {
+					if (req.user.phone) {
+						return res.json(await model.find({userId: req.user._id}));
+					}
 					return res.json(await model.find());
 				}
 			}
@@ -67,7 +70,7 @@ export default class defaultRoutes {
 					if (!elem) return res.status(404).json({success: false, msg: `${modelName} not found`})
 					return res.json(elem);
 				} catch(err) {
-					return res.status(500).json({success: false, msg: err.name});
+					next(err);
 				}
 			}
 
@@ -76,40 +79,33 @@ export default class defaultRoutes {
 				if (!elem[`${select}`]) return res.json({success: false, msg: `Cannot select ${select}`});
 				return res.json(elem[`${select}`]);
 			} catch(err) {
-				return res.status(500).json({success: false, msg: err.name});
+				next(err);
 			}
 		})
 	}
 
 	initPost(model, modelName) {
 		this.router.post('', passport.authenticate('jwt', {session: false}), access, async(req, res) => {
-			const id = req.params.id;
 			try {
 				/*if (['orders', 'likes', 'comments'].indexOf(modelName) != -1) {
 					var elem = new model(Object.assign({}, req.body, {userId: req.user.id}));
 				} else {
 					var elem = new model(req.body);
 				}*/
+
 				const elem = new model(req.body);
-				
 				await elem.save();
 				return res.status(201).json(elem);
 			} catch(err) {
-				console.log(err);
-				return res.status(500).json({success: false, msg: err.name});	
+				next(err);
 			}
 		})
 	}
 
 	initChange(model, modelNmae) {
-		this.router.post('/:id', passport.authenticate('jwt', {session: false}), access, async(req, res) => {
-			const id = req.params.id;
-			const re = new RegExp('(^[0-9a-fA-F]{24}$)');
-			if (!id.match(re)) {
-				return res.status(400).json({success: false, msg: `Incorrect ${modelName} id`});
-			}
-
+		this.router.post('/:id', checkId, passport.authenticate('jwt', {session: false}), access, async(req, res) => {
 			try {
+				const id = req.params.id;
 				const elem = await model.findById(id);
 				if (!elem) return res.status(404).json({success:false, msg: `${modelName} not found`});
 				await model.update({_id: id}, {$set:
@@ -117,26 +113,21 @@ export default class defaultRoutes {
 				});
 				return res.json({success: true, msg: `${modelName} updated`});
 			} catch(err) {
-				return res.status(500).json({success: false, msg: err.name});
+				next(err);
 			}
 		})
 	}
 
 	initDelete(model, modelName) {
-		this.router.post('/:id', passport.authenticate('jwt', {session: false}), access, async(req, res) => {
+		this.router.delete('/:id', passport.authenticate('jwt', {session: false}), access, async(req, res) => {
 			const id = req.params.id;
-			const re = new RegExp('(^[0-9a-fA-F]{24}$)');
-			if (!id.match(re)) {
-				return res.status(400).json({success: false, msg: `Incorrect ${modelName} id`});
-			}
-
 			try {
 				const elem = await model.findById(id);
 				if (!elem) return res.status(404).json({success:false, msg: `${modelName} not found`});
 				await elem.remove();
 				return res.json({success: true, msg: `${modelName} deleted`});
 			} catch(err) {
-				return res.status(500).json({success: false, msg: err.name});
+				next(err);
 			}
 		})
 	}

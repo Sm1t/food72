@@ -42,6 +42,9 @@ mongoose.connection.on('error', (err) => {
 	console.log('database error' + err);
 });
 
+app.get('/', (req, res) => {
+	res.send('dratuti');
+});
 
 app.use('/users', users);
 app.use('/dishes', dishes);
@@ -52,10 +55,12 @@ app.use('/toppings', toppings);
 app.use('/orders', orders);
 app.use('/employees', employees);
 
-
-app.get('/', (req, res) => {
-	res.send('dratuti');
+app.use((err, req, res, next) => {
+	console.log(err);
+	return res.status(500).json({success: false, msg: err.name});
 })
+
+
 
 app.listen(port, () => {
 	console.log('yep' + port);

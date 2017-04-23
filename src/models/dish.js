@@ -12,15 +12,6 @@ const DishSchema = mongoose.Schema({
 	category : {
 		type: String
 	},
-	locations: [
-		{
-			locationId: {
-				type: Schema.Types.ObjectId,
-				ref: 'Location',
-				required: true
-			}
-		}
-	],
 	toppings: [
 		{
 			toppingId: {
@@ -90,7 +81,7 @@ const DishSchema = mongoose.Schema({
 		type: Number,
 		default: 5
 	},
-	likesCount: {
+	likes: {
 		type: Number,
 		required: true,
 		default: 0

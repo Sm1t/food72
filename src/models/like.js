@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import _ from 'lodash';
 const { Schema } = mongoose;
 
 const LikeSchema = mongoose.Schema({
@@ -9,10 +10,16 @@ const LikeSchema = mongoose.Schema({
 	},
 	userId: {
 		type: Schema.Types.ObjectId,
-		ref: 'User',
+		ref: 'Dish',
 		required: true
-	}
+	},
+}, {
+	timestamps: true
 });
+
+LikeSchema.methods.toJSON = function() {
+	return _.pick(this, ['dishId', 'userId']);
+}
 
 export default mongoose.model('Like', LikeSchema);
 

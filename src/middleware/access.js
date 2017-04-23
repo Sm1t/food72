@@ -1,6 +1,6 @@
 export default (req, res, next) => {
 	const userAccess = ['/likes', '/comments', '/orders'];
-	const employeeAccess = ['/dishes', '/toppings', '/locations'];
+	const employeeAccess = ['/dishes', '/toppings', '/locations', '/menu'];
 	const adminAccess = ['/employees'];
 
 	if (req.user) {
