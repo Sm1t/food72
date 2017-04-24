@@ -1,4 +1,4 @@
-import testdefaultRoutes from '../resources/testdefaultRoutes';
+import testDefaultRoutes from '../resources/testDefaultRoutes';
 import Shedule from '../models/shedule';
 import checkId from '../middleware/checkId';
 import passport from 'passport';
@@ -13,7 +13,7 @@ const params = {
 	]
 }
 
-const defaultShedules = new testdefaultRoutes(params);
+const defaultShedules = new testDefaultRoutes(params);
 defaultShedules.init(Shedule, 'shedules');
 
 

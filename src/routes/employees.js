@@ -1,5 +1,5 @@
 import passport from 'passport';
-import testdefaultRoutes from '../resources/testdefaultRoutes';
+import testDefaultRoutes from '../resources/testDefaultRoutes';
 import Employee from '../models/employee';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -10,7 +10,7 @@ const params = {
 	modifierMiddlewares:[]
 }
 
-const defaultEmployees = new testdefaultRoutes(params);
+const defaultEmployees = new testDefaultRoutes(params);
 
 // Register
 defaultEmployees.router.post('', async(req, res) => {
