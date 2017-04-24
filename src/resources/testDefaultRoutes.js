@@ -4,7 +4,8 @@ import access from '../middleware/access';
 import checkId from '../middleware/checkId';
 
 export default class defaultRoutes {
-	constructor() {
+	constructor(params) {
+		Object.assign(this, params);
 		this.router = express.Router();
 	}
 
@@ -16,7 +17,7 @@ export default class defaultRoutes {
 	}
 	
 	initGet(model, modelName) {
-		this.router.get('/:id?/:select?', passport.authenticate('jwt', {session: false}), access, async(req, res) => {
+		this.router.get('/:id?/:select?', this.viewerMiddlewares, async(req, res, next) => {
 			const id = req.params.id;
 			const select = req.params.select;
 
@@ -52,7 +53,7 @@ export default class defaultRoutes {
 						next(err);	
 					}	
 				} else {
-					if (req.user.phone) {
+					if (req.user && req.user.phone) {
 						return res.json(await model.find({userId: req.user._id}));
 					}
 					return res.json(await model.find());
@@ -85,7 +86,7 @@ export default class defaultRoutes {
 	}
 
 	initPost(model, modelName) {
-		this.router.post('', passport.authenticate('jwt', {session: false}), access, async(req, res) => {
+		this.router.post('', this.modifierMiddlewares, async(req, res, next) => {
 			try {
 				/*if (['orders', 'likes', 'comments'].indexOf(modelName) != -1) {
 					var elem = new model(Object.assign({}, req.body, {userId: req.user.id}));
@@ -103,7 +104,7 @@ export default class defaultRoutes {
 	}
 
 	initChange(model, modelNmae) {
-		this.router.post('/:id', checkId, passport.authenticate('jwt', {session: false}), access, async(req, res) => {
+		this.router.post('/:id', this.modifierMiddlewares, async(req, res, next) => {
 			try {
 				const id = req.params.id;
 				const elem = await model.findById(id);
@@ -119,7 +120,7 @@ export default class defaultRoutes {
 	}
 
 	initDelete(model, modelName) {
-		this.router.delete('/:id', checkId, passport.authenticate('jwt', {session: false}), access, async(req, res) => {
+		this.router.delete('/:id', this.modifierMiddlewares, async(req, res, next) => {
 			const id = req.params.id;
 			try {
 				const elem = await model.findById(id);

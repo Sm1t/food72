@@ -14,6 +14,7 @@ import comments from './routes/comments';
 import toppings from './routes/toppings';
 import orders from './routes/orders';
 import employees from './routes/employees';
+import shedules from './routes/shedules';
 
 
 
@@ -54,6 +55,7 @@ app.use('/comments', comments);
 app.use('/toppings', toppings);
 app.use('/orders', orders);
 app.use('/employees', employees);
+app.use('/shedules', shedules);
 
 app.use((err, req, res, next) => {
 	console.log(err);

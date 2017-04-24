@@ -1,11 +1,16 @@
 import passport from 'passport';
-import defaultRoutes from '../resources/defaultRoutes';
+import testdefaultRoutes from '../resources/testdefaultRoutes';
 import Employee from '../models/employee';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import config from '../config/index';
 
-const defaultEmployees = new defaultRoutes();
+const params = {
+	viewerMiddlewares:[],
+	modifierMiddlewares:[]
+}
+
+const defaultEmployees = new testdefaultRoutes(params);
 
 // Register
 defaultEmployees.router.post('', async(req, res) => {
@@ -52,6 +57,6 @@ defaultEmployees.router.post('/profile', passport.authenticate('jwt', {session: 
 })
 
 
-defaultEmployees.init(Employee, 'employees');
+defaultEmployees.initGet(Employee, 'employees');
 
 export default defaultEmployees.router;

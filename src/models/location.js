@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+const { Schema } = mongoose;
 
 const LocationSchema = mongoose.Schema({
 	name: {
@@ -7,6 +8,11 @@ const LocationSchema = mongoose.Schema({
 	},
 	number: {
 		type: Number,
+		required: true
+	},
+	workTime: {
+		type: Schema.Types.ObjectId,
+		ref: 'Shedule',
 		required: true
 	}
 })

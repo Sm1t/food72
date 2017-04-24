@@ -31,14 +31,6 @@ defaultLikes.router.post('', passport.authenticate('jwt', {session: false}), asy
 	}
 })
 
-defaultLikes.router.post('/:id', checkId, async(req, res, next) => {
-	try {
-
-	} catch(err) {
-		next(err);
-	}
-})
-
 defaultLikes.initGet(Like, 'likes');
 
 export default defaultLikes.router;
