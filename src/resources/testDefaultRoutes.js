@@ -74,11 +74,19 @@ export default class defaultRoutes {
 	initPost(model, modelName) {
 		this.router.post('', this.postMiddlewares || [], async(req, res, next) => {
 			try {
-				const exist = await model.findOne(req.body);
-				if (exist) {
-					return res.status(400).json({success: false, msg: `${modelName} aready exist`});
+				if (!this.canRepeated || this.canRepeated != true) {
+					const exist = await model.findOne(req.body);
+					if (exist) {
+						return res.status(400).json({success: false, msg: `${modelName} aready exist`});
+					}
 				}
-				const elem = new model(req.body);
+
+				if (req.user && req.user._id) {
+					var elem = new model(Object.assign(req.body, {userId: req.user._id}));
+				} else {
+					var elem = new model(req.body);
+				}
+				
 				await elem.save();
 				return res.status(201).json(elem);
 			} catch(err) {

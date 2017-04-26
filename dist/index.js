@@ -342,6 +342,15 @@ var getLastModified = (function () {
 
 					case 2:
 						arr = _context.sent;
+
+						if (arr[0]) {
+							_context.next = 5;
+							break;
+						}
+
+						return _context.abrupt('return');
+
+					case 5:
 						lastModified = arr.reduce(function (prev, candidate) {
 							return prev.updatedAt > candidate.updatedAt ? prev : candidate;
 						});
@@ -362,7 +371,7 @@ var getLastModified = (function () {
 						lastModified = new Date(lastModified).toLocaleString('en-US', opts);
 						return _context.abrupt('return', lastModified);
 
-					case 8:
+					case 10:
 					case 'end':
 						return _context.stop();
 				}
@@ -570,39 +579,51 @@ var defaultRoutes$1 = function () {
 							switch (_context2.prev = _context2.next) {
 								case 0:
 									_context2.prev = 0;
-									_context2.next = 3;
+
+									if (!(!_this2.canRepeated || _this2.canRepeated != true)) {
+										_context2.next = 7;
+										break;
+									}
+
+									_context2.next = 4;
 									return model.findOne(req.body);
 
-								case 3:
+								case 4:
 									exist = _context2.sent;
 
 									if (!exist) {
-										_context2.next = 6;
+										_context2.next = 7;
 										break;
 									}
 
 									return _context2.abrupt('return', res.status(400).json({ success: false, msg: modelName + ' aready exist' }));
 
-								case 6:
-									elem = new model(req.body);
-									_context2.next = 9;
+								case 7:
+
+									if (req.user && req.user._id) {
+										elem = new model(_Object$assign(req.body, { userId: req.user._id }));
+									} else {
+										elem = new model(req.body);
+									}
+
+									_context2.next = 10;
 									return elem.save();
 
-								case 9:
+								case 10:
 									return _context2.abrupt('return', res.status(201).json(elem));
 
-								case 12:
-									_context2.prev = 12;
+								case 13:
+									_context2.prev = 13;
 									_context2.t0 = _context2['catch'](0);
 
 									next(_context2.t0);
 
-								case 15:
+								case 16:
 								case 'end':
 									return _context2.stop();
 							}
 						}
-					}, _callee2, _this2, [[0, 12]]);
+					}, _callee2, _this2, [[0, 13]]);
 				}));
 
 				return function (_x4, _x5, _x6) {
@@ -1118,13 +1139,11 @@ var getUniqueNumber = _asyncToGenerator(_regeneratorRuntime.mark(function _calle
 
 var Schema$3 = mongoose__default.Schema;
 
-
 var OrderSchema = mongoose__default.Schema({
-	/*userId: {
- 	type: Schema.Types.ObjectId,
- 	ref: 'User',
- 	required: true
- },*/
+	userId: {
+		type: Schema$3.Types.ObjectId,
+		ref: 'User'
+	},
 	dishes: [{
 		dishId: {
 			type: Schema$3.Types.ObjectId,
@@ -1135,7 +1154,8 @@ var OrderSchema = mongoose__default.Schema({
 			type: Number,
 			required: true,
 			default: 1
-		}
+		},
+		_id: false
 	}],
 	payStatus: {
 		type: Boolean,
@@ -1161,8 +1181,7 @@ var OrderSchema = mongoose__default.Schema({
 		required: true
 	},
 	number: {
-		type: Number,
-		required: true
+		type: Number
 	}
 }, {
 	timestamps: true
@@ -1177,23 +1196,32 @@ OrderSchema.pre('save', function (next) {
 	}).catch(next);
 });
 
+OrderSchema.methods.toJSON = function () {
+	return _.pick(this, ['_id', 'userId', 'dishes', 'payStatus', 'completed', 'status', 'totalPrice', 'time', 'number']);
+};
+
 var Order = mongoose__default.model('Order', OrderSchema);
 
-var defaultOrders = new defaultRoutes$1();
+var params = {
+	postMiddlewares: [passport.authenticate('jwt', { session: false })],
+	canRepeated: true
+};
+
+var defaultOrders = new defaultRoutes$1(params);
 defaultOrders.init(Order, 'order');
 
 var orders = defaultOrders.router;
 
 var _this$5 = undefined;
 
-var params = {
+var params$1 = {
 	getMiddlewares: [], //middlewares for 'get' request
 	postMiddlewares: [], //middlewares for 'post' request
 	deleteMiddlewares: [], //middlewares for 'delete' request
 	putMiddlewares: [] //middlewares for 'put' request
 };
 
-var defaultEmployees = new defaultRoutes$1(params);
+var defaultEmployees = new defaultRoutes$1(params$1);
 
 // Register
 defaultEmployees.router.post('', function () {
@@ -1361,7 +1389,7 @@ var SheduleSchema = mongoose__default.Schema({
 
 var Shedule = mongoose__default.model('Shedule', SheduleSchema);
 
-var params$1 = {
+var params$2 = {
 	getMiddlewares: [
 		/*passport.authenticate('jwt', {session: false}),
   (req, res, next) => {
@@ -1376,7 +1404,7 @@ var params$1 = {
 	putMiddlewares: [] //middlewares for 'put' request
 };
 
-var defaultShedules = new defaultRoutes$1(params$1);
+var defaultShedules = new defaultRoutes$1(params$2);
 defaultShedules.init(Shedule, 'shedules');
 
 /*defaultShedules.router.get('', async(req, res, next) => {

@@ -1,5 +1,6 @@
 export default async (model) => {
 	const arr = await model.find();
+	if (!arr[0]) return;
 	let lastModified = arr.reduce(function(prev, candidate) {
 		return (prev.updatedAt > candidate.updatedAt) ? prev : candidate;
 	});

@@ -1,13 +1,13 @@
 import mongoose from 'mongoose';
 import getUniqueNumber from '../helpers/getUniqueNumber';
 const { Schema } = mongoose;
+import _ from 'lodash';
 
 const OrderSchema = mongoose.Schema({
-	/*userId: {
+	userId: {
 		type: Schema.Types.ObjectId,
-		ref: 'User',
-		required: true
-	},*/
+		ref: 'User'
+	},
 	dishes: [
 		{
 			dishId: {
@@ -19,7 +19,8 @@ const OrderSchema = mongoose.Schema({
 				type: Number,
 				required: true,
 				default: 1
-			}
+			},
+			_id: false
 		}
 	],
 	payStatus: {
@@ -46,8 +47,7 @@ const OrderSchema = mongoose.Schema({
 		required: true
 	},
 	number: {
-		type: Number,
-		required: true
+		type: Number
 	}
 }, {
 	timestamps: true
@@ -61,5 +61,9 @@ OrderSchema.pre('save', function(next) {
 	})
 	.catch(next)
 })
+
+OrderSchema.methods.toJSON = function() {
+	return _.pick(this, ['_id', 'userId', 'dishes', 'payStatus', 'completed', 'status', 'totalPrice', 'time', 'number']);
+}
 
 export default mongoose.model('Order', OrderSchema);
