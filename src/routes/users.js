@@ -5,9 +5,9 @@ import bcrypt from 'bcryptjs';
 import User from '../models/user';
 import Like from '../models/like';
 import Comment from '../models/comment';
-import defaultRoutes from '../resources/defaultRoutes';
+import testDefaultRoutes from '../resources/testDefaultRoutes';
 
-const defaultUsers = new defaultRoutes();
+const defaultUsers = new testDefaultRoutes();
 
 // Register
 defaultUsers.router.post('', async(req, res) => {
