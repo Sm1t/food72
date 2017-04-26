@@ -16,10 +16,7 @@ defaultUsers.router.post('', async(req, res) => {
 
 	try {
 		const user = new User(req.body),
-			  phone = user.phone,
-			  salt = await bcrypt.genSalt(10),
-		 	  hash = await bcrypt.hash(user.password, salt);
-		user.password = hash;
+			  phone = user.phone;
 		user.save();
 		const token = jwt.sign({phone}, config.secret, {expiresIn: 604800});
 		return res.status(201).json(Object.assign({}, user.toJSON(), {token: 'JWT ' + token}));
@@ -29,8 +26,8 @@ defaultUsers.router.post('', async(req, res) => {
 	}
 });
 
-// Authenticate
-defaultUsers.router.post('/authenticate', async(req, res) => {
+// login
+defaultUsers.router.post('/login', async(req, res) => {
 	const phone = req.body.phone,
 		  password = req.body.password;
 

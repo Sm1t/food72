@@ -6,8 +6,10 @@ import jwt from 'jsonwebtoken';
 import config from '../config/index';
 
 const params = {
-	viewerMiddlewares:[],
-	modifierMiddlewares:[]
+	getMiddlewares:[], //middlewares for 'get' request
+	postMiddlewares:[], //middlewares for 'post' request
+	deleteMiddlewares:[], //middlewares for 'delete' request
+	putMiddlewares:[] //middlewares for 'put' request
 }
 
 const defaultEmployees = new testDefaultRoutes(params);
@@ -19,10 +21,7 @@ defaultEmployees.router.post('', async(req, res) => {
 
 	try {
 		const employee = new Employee(req.body),
-			  login = employee.login,
-			  salt = await bcrypt.genSalt(10),
-		 	  hash = await bcrypt.hash(employee.password, salt);
-		employee.password = hash;
+			  login = employee.login;
 		employee.save();
 		const token = jwt.sign({login}, config.secret, {expiresIn: 604800});
 		return res.status(201).json(Object.assign({}, employee.toJSON(), {token: 'JWT ' + token}));
@@ -58,5 +57,6 @@ defaultEmployees.router.post('/profile', passport.authenticate('jwt', {session: 
 
 
 defaultEmployees.initGet(Employee, 'employees');
+defaultEmployees.initPut(Employee, 'employees');
 
 export default defaultEmployees.router;

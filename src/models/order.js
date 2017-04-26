@@ -1,12 +1,13 @@
 import mongoose from 'mongoose';
+import getUniqueNumber from '../helpers/getUniqueNumber';
 const { Schema } = mongoose;
 
 const OrderSchema = mongoose.Schema({
-	userId: {
+	/*userId: {
 		type: Schema.Types.ObjectId,
 		ref: 'User',
 		required: true
-	},
+	},*/
 	dishes: [
 		{
 			dishId: {
@@ -43,9 +44,22 @@ const OrderSchema = mongoose.Schema({
 	time: {
 		type: String,
 		required: true
+	},
+	number: {
+		type: Number,
+		required: true
 	}
 }, {
 	timestamps: true
 });
+
+OrderSchema.pre('save', function(next) {
+	return getUniqueNumber()
+	.then(unique => {
+		this.number = unique;
+		next();
+	})
+	.catch(next)
+})
 
 export default mongoose.model('Order', OrderSchema);

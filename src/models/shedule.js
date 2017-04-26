@@ -12,40 +12,21 @@ const daySchema = new Schema({
 			required: true
 		}
 	]
+}, {
+	_id: false
 })
 
 
 
 const SheduleSchema = mongoose.Schema({
-	monday: {
-		workTime: {
-			type: String,
-			required: true
-		},
-		break: [
-			{
-				type: String,
-				required: true
-			},
-		]
-	},
-	tuesday: {
-		workTime: {
-			type: String,
-			required: true
-		},
-		break: [
-			{
-				type: String,
-				required: true
-			},
-		]
-	}
-	//tuesday: [...daySchema],
-	//wednesday: [...daySchema],
-	//thursday: [...daySchema],
-	//friday: [...daySchema],
-	//saturday: [...daySchema],
+	monday: daySchema,
+	tuesday: daySchema,
+	wednesday: daySchema,
+	thursday: daySchema,
+	friday: daySchema,
+	saturday: daySchema,
+}, {
+	timestamps: true
 })
 
 

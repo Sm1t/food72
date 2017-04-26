@@ -15,6 +15,7 @@ import toppings from './routes/toppings';
 import orders from './routes/orders';
 import employees from './routes/employees';
 import shedules from './routes/shedules';
+import Topping from './models/topping';
 
 
 
@@ -56,6 +57,10 @@ app.use('/toppings', toppings);
 app.use('/orders', orders);
 app.use('/employees', employees);
 app.use('/shedules', shedules);
+
+app.use((req, res, next) => {
+	return res.status(404).json({msg: '404 Not Found'});
+})
 
 app.use((err, req, res, next) => {
 	console.log(err);

@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import _ from 'lodash';
+import bcrypt from 'bcryptjs';
 
 const EmployeeSchema = mongoose.Schema({
 	name: {
@@ -35,6 +36,18 @@ const EmployeeSchema = mongoose.Schema({
 EmployeeSchema.methods.toJSON = function() {
 	return _.pick(this, ['_id', 'name', 'surname', 'position']);
 }
+
+EmployeeSchema.pre('save', function(next) {
+	return bcrypt.genSalt(10)
+	.then(salt => {
+		bcrypt.hash(this.password, salt)
+		.then(hash => {
+			this.password = hash;
+			next();
+		})
+	})
+	.catch(next)
+})
 
 export default mongoose.model('Employee', EmployeeSchema);
 

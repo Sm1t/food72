@@ -1,7 +1,8 @@
 import express from 'express';
-import passport from 'passport';
 import access from '../middleware/access';
 import checkId from '../middleware/checkId';
+import ifModifiedSince from '../resources/ifModifiedSince';
+import getLastModified from '../resources/getLastModified';
 
 export default class defaultRoutes {
 	constructor(params) {
@@ -12,12 +13,12 @@ export default class defaultRoutes {
 	init(model, modelName) {
 		this.initGet(model, modelName);
 		this.initPost(model, modelName);
-		this.initChange(model, modelName);
+		this.initPut(model, modelName);
 		this.initDelete(model, modelName);
 	}
 	
 	initGet(model, modelName) {
-		this.router.get('/:id?/:select?', this.viewerMiddlewares, async(req, res, next) => {
+		this.router.get('/:id?/:select?', checkId, this.getMiddlewares || [], async(req, res, next) => {
 			const id = req.params.id;
 			const select = req.params.select;
 
@@ -25,27 +26,10 @@ export default class defaultRoutes {
 				let modifiedSince = req.headers['if-modified-since'];
 				if (modifiedSince) {
 					try {
-						modifiedSince = new Date(Date.parse(modifiedSince));
-						let news = await model.find({"updatedAt": {$gt: modifiedSince}});
-						if (news[0]) {
-							let lastModified = news.reduce(function(prev, candidate) {
-								return (prev.updatedAt > candidate.updatedAt) ? prev : candidate;
-							});
-							lastModified = Date.parse(lastModified.updatedAt);
-							const opts = {
-								year: 'numeric',
-								month: 'short',
-								day: 'numeric',
-								weekday: 'short',
-								hour: 'numeric',
-								minute: 'numeric',
-								second: 'numeric',
-								timeZoneName: 'short',
-								hour12: false
-							};
-							lastModified = (new Date(lastModified)).toLocaleString('en-US', opts);
-							res.set('Last-Modified', lastModified);
-							return res.json(news);
+						const changes = await ifModifiedSince(model, modifiedSince);
+						if (changes) {
+							res.set('Last-Modified', changes.lastModified);
+							return res.json(changes.news);
 						} else {
 							return res.status(304).send();
 						}
@@ -56,6 +40,8 @@ export default class defaultRoutes {
 					if (req.user && req.user.phone) {
 						return res.json(await model.find({userId: req.user._id}));
 					}
+					const lastModified = await getLastModified(model);
+					res.set('Last-Modified', lastModified);
 					return res.json(await model.find());
 				}
 			}
@@ -86,14 +72,12 @@ export default class defaultRoutes {
 	}
 
 	initPost(model, modelName) {
-		this.router.post('', this.modifierMiddlewares, async(req, res, next) => {
+		this.router.post('', this.postMiddlewares || [], async(req, res, next) => {
 			try {
-				/*if (['orders', 'likes', 'comments'].indexOf(modelName) != -1) {
-					var elem = new model(Object.assign({}, req.body, {userId: req.user.id}));
-				} else {
-					var elem = new model(req.body);
-				}*/
-
+				const exist = await model.findOne(req.body);
+				if (exist) {
+					return res.status(400).json({success: false, msg: `${modelName} aready exist`});
+				}
 				const elem = new model(req.body);
 				await elem.save();
 				return res.status(201).json(elem);
@@ -103,10 +87,11 @@ export default class defaultRoutes {
 		})
 	}
 
-	initChange(model, modelNmae) {
-		this.router.post('/:id', this.modifierMiddlewares, async(req, res, next) => {
+	initPut(model, modelName) {
+		this.router.put('/:id', checkId, this.putMiddlewares || [], async(req, res, next) => {
+			const id = req.params.id;
+
 			try {
-				const id = req.params.id;
 				const elem = await model.findById(id);
 				if (!elem) return res.status(404).json({success:false, msg: `${modelName} not found`});
 				await model.update({_id: id}, {$set:
@@ -120,7 +105,7 @@ export default class defaultRoutes {
 	}
 
 	initDelete(model, modelName) {
-		this.router.delete('/:id', this.modifierMiddlewares, async(req, res, next) => {
+		this.router.delete('/:id', checkId, this.deleteMiddlewares || [], async(req, res, next) => {
 			const id = req.params.id;
 			try {
 				const elem = await model.findById(id);

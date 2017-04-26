@@ -5,12 +5,18 @@ import passport from 'passport';
 
 
 const params = {
-	viewerMiddlewares: [
-		checkId
-	],
-	modifierMiddlewares: [
-		//passport.authenticate('jwt', {session: false})
-	]
+	getMiddlewares:[
+		/*passport.authenticate('jwt', {session: false}),
+		(req, res, next) => {
+			if (req.user && req.user.login) {
+				return next();
+			}
+			return res.json({success: false, msg: 'access denied'})
+		}*/
+	], //middlewares for 'get' request
+	postMiddlewares:[], //middlewares for 'post' request
+	deleteMiddlewares:[], //middlewares for 'delete' request
+	putMiddlewares:[] //middlewares for 'put' request
 }
 
 const defaultShedules = new testDefaultRoutes(params);

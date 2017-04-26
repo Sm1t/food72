@@ -1,7 +1,7 @@
-import defaultRoutes from '../resources/defaultRoutes';
+import testDefaultRoutes from '../resources/testDefaultRoutes';
 import Comment from '../models/comment';
 
-const defaultComments = new defaultRoutes();
+const defaultComments = new testDefaultRoutes();
 defaultComments.init(Comment, 'comments');
 
 export default defaultComments.router;
