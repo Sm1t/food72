@@ -31,6 +31,7 @@
     "bcryptjs": "^2.4.3",
     "bluebird": "^3.5.0",
     "body-parser": "^1.17.1",
+    "connect-multiparty": "^2.0.0",
     "del": "^2.2.2",
     "jsonwebtoken": "^7.3.0",
     "lodash": "^4.17.4",

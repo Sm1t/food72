@@ -95,4 +95,18 @@ const DishSchema = mongoose.Schema({
 	timestamps: true
 });
 
+
+DishSchema.methods.toJSON = function() {
+	return _.omit(this.toObject(), ['updatedAt', 'createdAt'])
+}
+
+DishSchema.methods.updateLikesCount = function() {
+	const dish = this;
+	return Like.count({dishId: dish._id}).then(count => {
+		dish.likes = count;
+		return dish.save();
+	});
+}
+
+
 export default mongoose.model('Dish', DishSchema);

@@ -9,6 +9,7 @@ var mongoose__default = _interopDefault(mongoose);
 var Promise = _interopDefault(require('bluebird'));
 var path = _interopDefault(require('path'));
 var passport = _interopDefault(require('passport'));
+var fs = _interopDefault(require('fs'));
 var _regeneratorRuntime = _interopDefault(require('babel-runtime/regenerator'));
 var _asyncToGenerator = _interopDefault(require('babel-runtime/helpers/asyncToGenerator'));
 var bcrypt = _interopDefault(require('bcryptjs'));
@@ -233,16 +234,153 @@ LikeSchema.methods.toJSON = function () {
 
 var Like = mongoose__default.model('Like', LikeSchema);
 
+// Product Schema
+var DishSchema = mongoose__default.Schema({
+	name: {
+		type: String,
+		required: true
+	},
+	category: {
+		type: String
+	},
+	toppings: [{
+		toppingId: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'Topping',
+			required: true
+		}
+	}],
+	dishPicture: {
+		type: String
+	},
+	callories: {
+		type: Number,
+		required: true
+	},
+	description: {
+		type: String
+	},
+	composition: [{
+		name: {
+			type: String,
+			required: true
+		},
+		quantity: {
+			type: String,
+			required: true
+		}
+	}],
+	weight: {
+		type: Number,
+		required: true
+	},
+	conteiner: {
+		type: {
+			type: String,
+			required: true
+		},
+		size: {
+			type: Number,
+			required: true
+		},
+		price: {
+			type: Number,
+			required: true
+		}
+	},
+	proteins: {
+		type: Number,
+		required: true
+	},
+	carbohydrates: {
+		type: Number,
+		required: true
+	},
+	fats: {
+		type: Number,
+		required: true
+	},
+	price: {
+		type: Number,
+		required: true
+	},
+	rating: {
+		type: Number,
+		default: 5
+	},
+	likes: {
+		type: Number,
+		required: true,
+		default: 0
+	},
+	active: {
+		type: Boolean,
+		default: true,
+		required: true
+	}
+}, {
+	timestamps: true
+});
+
+DishSchema.methods.toJSON = function () {
+	return _.omit(this.toObject(), ['updatedAt', 'createdAt']);
+};
+
+DishSchema.methods.updateLikesCount = function () {
+	var dish = this;
+	return Like.count({ dishId: dish._id }).then(function (count) {
+		dish.likes = count;
+		return dish.save();
+	});
+};
+
+var Dish = mongoose__default.model('Dish', DishSchema);
+
+var _this$1 = undefined;
+
+var updateRating = (function () {
+	var _ref = _asyncToGenerator(_regeneratorRuntime.mark(function _callee(dishId, valuation) {
+		var commentsCount, currentRating;
+		return _regeneratorRuntime.wrap(function _callee$(_context) {
+			while (1) {
+				switch (_context.prev = _context.next) {
+					case 0:
+						_context.next = 2;
+						return Comment.find().count();
+
+					case 2:
+						commentsCount = _context.sent;
+						_context.next = 5;
+						return Dish.findOne({ _id: dishId });
+
+					case 5:
+						currentRating = _context.sent.rating;
+						return _context.abrupt('return', Dish.update({ _id: dishId }, { $set: {
+								rating: (valuation + currentRating * (commentsCount - 1)) / commentsCount
+							} }));
+
+					case 7:
+					case 'end':
+						return _context.stop();
+				}
+			}
+		}, _callee, _this$1);
+	}));
+
+	return function (_x, _x2) {
+		return _ref.apply(this, arguments);
+	};
+})();
+
 var CommentSchema = mongoose__default.Schema({
-	dish: {
+	dishId: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: 'Dish',
 		required: true
 	},
 	userId: {
 		type: mongoose.Schema.Types.ObjectId,
-		ref: 'User',
-		required: true
+		ref: 'User'
 	},
 	text: {
 		type: String,
@@ -254,6 +392,10 @@ var CommentSchema = mongoose__default.Schema({
 	}
 }, {
 	timestamps: true
+});
+
+CommentSchema.post('save', function (next) {
+	return updateRating(this.dishId, this.rating).catch(next);
 });
 
 var Comment = mongoose__default.model('Comment', CommentSchema);
@@ -268,7 +410,7 @@ var checkId = (function (req, res, next) {
 	return next();
 });
 
-var _this$1 = undefined;
+var _this$2 = undefined;
 
 var ifModifiedSince = (function () {
 	var _ref = _asyncToGenerator(_regeneratorRuntime.mark(function _callee(model, modifiedSince) {
@@ -279,7 +421,7 @@ var ifModifiedSince = (function () {
 					case 0:
 						modifiedSince = new Date(Date.parse(modifiedSince));
 						_context.next = 3;
-						return model.find({ "updatedAt": { $gt: modifiedSince } });
+						return model.find({ "updatedAt": { $gt: modifiedSince + '.999Z' } });
 
 					case 3:
 						news = _context.sent;
@@ -320,7 +462,7 @@ var ifModifiedSince = (function () {
 						return _context.stop();
 				}
 			}
-		}, _callee, _this$1);
+		}, _callee, _this$2);
 	}));
 
 	return function (_x, _x2) {
@@ -328,7 +470,7 @@ var ifModifiedSince = (function () {
 	};
 })();
 
-var _this$2 = undefined;
+var _this$3 = undefined;
 
 var getLastModified = (function () {
 	var _ref = _asyncToGenerator(_regeneratorRuntime.mark(function _callee(model) {
@@ -376,7 +518,7 @@ var getLastModified = (function () {
 						return _context.stop();
 				}
 			}
-		}, _callee, _this$2);
+		}, _callee, _this$3);
 	}));
 
 	return function (_x) {
@@ -407,7 +549,7 @@ var defaultRoutes$1 = function () {
 
 			this.router.get('/:id?/:select?', checkId, this.getMiddlewares || [], function () {
 				var _ref = _asyncToGenerator(_regeneratorRuntime.mark(function _callee(req, res, next) {
-					var id, select, modifiedSince, changes, lastModified, re, elem, _elem;
+					var id, select, modifiedSince, changes, lastModified, elem, _elem;
 
 					return _regeneratorRuntime.wrap(function _callee$(_context) {
 						while (1) {
@@ -468,7 +610,7 @@ var defaultRoutes$1 = function () {
 
 									_context.t1 = res;
 									_context.next = 26;
-									return model.find({ userId: req.user._id });
+									return model.find({ userId: req.user._id }).populate(_this.populate || '');
 
 								case 26:
 									_context.t2 = _context.sent;
@@ -484,81 +626,71 @@ var defaultRoutes$1 = function () {
 									res.set('Last-Modified', lastModified);
 									_context.t3 = res;
 									_context.next = 35;
-									return model.find();
+									return model.find().populate(_this.populate || '');
 
 								case 35:
 									_context.t4 = _context.sent;
 									return _context.abrupt('return', _context.t3.json.call(_context.t3, _context.t4));
 
 								case 37:
-									re = new RegExp('(^[0-9a-fA-F]{24}$)');
-
-									if (id.match(re)) {
-										_context.next = 40;
-										break;
-									}
-
-									return _context.abrupt('return', res.status(400).json({ success: false, msg: 'Incorrect ' + modelName + ' id' }));
-
-								case 40:
 									if (!(id && !select)) {
-										_context.next = 53;
+										_context.next = 50;
 										break;
 									}
 
-									_context.prev = 41;
-									_context.next = 44;
-									return model.findById(id);
+									_context.prev = 38;
+									_context.next = 41;
+									return model.findById(id).populate(_this.populate || '');
 
-								case 44:
+								case 41:
 									elem = _context.sent;
 
 									if (elem) {
-										_context.next = 47;
+										_context.next = 44;
 										break;
 									}
 
 									return _context.abrupt('return', res.status(404).json({ success: false, msg: modelName + ' not found' }));
 
-								case 47:
+								case 44:
 									return _context.abrupt('return', res.json(elem));
 
-								case 50:
-									_context.prev = 50;
-									_context.t5 = _context['catch'](41);
+								case 47:
+									_context.prev = 47;
+									_context.t5 = _context['catch'](38);
 
 									next(_context.t5);
 
-								case 53:
-									_context.prev = 53;
-									_context.next = 56;
+								case 50:
+									_context.prev = 50;
+									_context.next = 53;
 									return model.findById(id);
 
-								case 56:
+								case 53:
 									_elem = _context.sent;
 
 									if (_elem['' + select]) {
-										_context.next = 59;
+										_context.next = 56;
 										break;
 									}
 
 									return _context.abrupt('return', res.json({ success: false, msg: 'Cannot select ' + select }));
 
-								case 59:
+								case 56:
 									return _context.abrupt('return', res.json(_elem['' + select]));
 
-								case 62:
-									_context.prev = 62;
-									_context.t6 = _context['catch'](53);
+								case 59:
+									_context.prev = 59;
+									_context.t6 = _context['catch'](50);
 
 									next(_context.t6);
 
-								case 65:
+								case 62:
 								case 'end':
 									return _context.stop();
 							}
 						}
-					}, _callee, _this, [[5, 17], [41, 50], [53, 62]]);
+					}, _callee, _this, [[5, 17], [38, 47], [50, 59]]);
 				}));
 
 				return function (_x, _x2, _x3) {
@@ -745,6 +877,9 @@ var defaultRoutes$1 = function () {
 
 var _this = undefined;
 
+var multipart$1 = require('connect-multiparty');
+var multipartMiddleware$1 = multipart$1();
+
 var defaultUsers = new defaultRoutes$1();
 
 // Register
@@ -805,21 +940,21 @@ defaultUsers.router.post('/login', function () {
 				switch (_context2.prev = _context2.next) {
 					case 0:
 						phone = req.body.phone, password = req.body.password;
-						_context2.next = 3;
+						_context2.prev = 1;
+						_context2.next = 4;
 						return User.findOne({ phone: phone });
 
-					case 3:
+					case 4:
 						user = _context2.sent;
 
 						if (user) {
-							_context2.next = 6;
+							_context2.next = 7;
 							break;
 						}
 
 						return _context2.abrupt('return', res.status(404).json({ success: false, msg: "User not found" }));
 
-					case 6:
-						_context2.prev = 6;
+					case 7:
 						_context2.next = 9;
 						return bcrypt.compare(password, user.password);
 
@@ -841,7 +976,7 @@ defaultUsers.router.post('/login', function () {
 
 					case 17:
 						_context2.prev = 17;
-						_context2.t0 = _context2['catch'](6);
+						_context2.t0 = _context2['catch'](1);
 						return _context2.abrupt('return', res.status(500).json({ success: false, msg: _context2.t0.name }));
 
 					case 20:
@@ -849,7 +984,7 @@ defaultUsers.router.post('/login', function () {
 						return _context2.stop();
 				}
 			}
-		}, _callee2, _this, [[6, 17]]);
+		}, _callee2, _this, [[1, 17]]);
 	}));
 
 	return function (_x3, _x4) {
@@ -857,15 +992,25 @@ defaultUsers.router.post('/login', function () {
 	};
 }());
 
-defaultUsers.router.post('/profile', passport.authenticate('jwt', { session: false }), function () {
+defaultUsers.router.post('/avatar', multipartMiddleware$1, passport.authenticate('jwt', { session: false }), function () {
 	var _ref3 = _asyncToGenerator(_regeneratorRuntime.mark(function _callee3(req, res) {
+		var img;
 		return _regeneratorRuntime.wrap(function _callee3$(_context3) {
 			while (1) {
 				switch (_context3.prev = _context3.next) {
 					case 0:
-						res.json(['/dishes', 'toppings', '/locations'].indexOf(req.path));
+						img = req.files.null;
 
-					case 1:
+
+						fs.readFile(img.path, function (err, data) {
+							var way = path.resolve(__dirname, '../uploads/images') + '/' + req.user._id + '.png';
+							fs.writeFile(way, data, function (err) {
+								if (err) throw err;
+								res.send('uploaded!');
+							});
+						});
+
+					case 2:
 					case 'end':
 						return _context3.stop();
 				}
@@ -878,99 +1023,51 @@ defaultUsers.router.post('/profile', passport.authenticate('jwt', { session: fal
 	};
 }());
 
+defaultUsers.router.get('/avatar', passport.authenticate('jwt', { session: false }), function () {
+	var _ref4 = _asyncToGenerator(_regeneratorRuntime.mark(function _callee4(req, res) {
+		return _regeneratorRuntime.wrap(function _callee4$(_context4) {
+			while (1) {
+				switch (_context4.prev = _context4.next) {
+					case 0:
+						res.sendFile(path.resolve(__dirname, '../uploads/images') + '/' + req.user._id + '.png');
+
+					case 1:
+					case 'end':
+						return _context4.stop();
+				}
+			}
+		}, _callee4, _this);
+	}));
+
+	return function (_x7, _x8) {
+		return _ref4.apply(this, arguments);
+	};
+}());
+
+defaultUsers.router.post('/profile', passport.authenticate('jwt', { session: false }), function () {
+	var _ref5 = _asyncToGenerator(_regeneratorRuntime.mark(function _callee5(req, res) {
+		return _regeneratorRuntime.wrap(function _callee5$(_context5) {
+			while (1) {
+				switch (_context5.prev = _context5.next) {
+					case 0:
+						res.json(['/dishes', 'toppings', '/locations'].indexOf(req.path));
+
+					case 1:
+					case 'end':
+						return _context5.stop();
+				}
+			}
+		}, _callee5, _this);
+	}));
+
+	return function (_x9, _x10) {
+		return _ref5.apply(this, arguments);
+	};
+}());
+
 defaultUsers.init(User, 'user');
 
 var users = defaultUsers.router;
-
-// Product Schema
-var DishSchema = mongoose__default.Schema({
-	name: {
-		type: String,
-		required: true
-	},
-	category: {
-		type: String
-	},
-	toppings: [{
-		toppingId: {
-			type: mongoose.Schema.Types.ObjectId,
-			ref: 'Topping',
-			required: true
-		}
-	}],
-	dishPicture: {
-		type: String
-	},
-	callories: {
-		type: Number,
-		required: true
-	},
-	description: {
-		type: String
-	},
-	composition: [{
-		name: {
-			type: String,
-			required: true
-		},
-		quantity: {
-			type: String,
-			required: true
-		}
-	}],
-	weight: {
-		type: Number,
-		required: true
-	},
-	conteiner: {
-		type: {
-			type: String,
-			required: true
-		},
-		size: {
-			type: Number,
-			required: true
-		},
-		price: {
-			type: Number,
-			required: true
-		}
-	},
-	proteins: {
-		type: Number,
-		required: true
-	},
-	carbohydrates: {
-		type: Number,
-		required: true
-	},
-	fats: {
-		type: Number,
-		required: true
-	},
-	price: {
-		type: Number,
-		required: true
-	},
-	rating: {
-		type: Number,
-		default: 5
-	},
-	likes: {
-		type: Number,
-		required: true,
-		default: 0
-	},
-	active: {
-		type: Boolean,
-		default: true,
-		required: true
-	}
-}, {
-	timestamps: true
-});
-
-var Dish = mongoose__default.model('Dish', DishSchema);
 
 var defaultDishes = new defaultRoutes$1();
 
@@ -981,6 +1078,19 @@ var dishes = defaultDishes.router;
 var Schema$2 = mongoose__default.Schema;
 
 
+var daySchema = new Schema$2({
+	workingHours: {
+		type: String,
+		required: true
+	},
+	break: [{
+		type: String,
+		required: true
+	}]
+}, {
+	_id: false
+});
+
 var LocationSchema = mongoose__default.Schema({
 	name: {
 		type: String,
@@ -990,21 +1100,27 @@ var LocationSchema = mongoose__default.Schema({
 		type: Number,
 		required: true
 	},
-	workTime: {
-		type: Schema$2.Types.ObjectId,
-		ref: 'Shedule',
-		required: true
+	workingTime: {
+		monday: daySchema,
+		tuesday: daySchema,
+		wednesday: daySchema,
+		thursday: daySchema,
+		friday: daySchema,
+		saturday: daySchema
 	}
+}, {
+	timestamps: true
 });
 
 var Location = mongoose__default.model('Location', LocationSchema);
 
 var defaultLocations = new defaultRoutes$1();
+
 defaultLocations.init(Location, 'locations');
 
 var locations = defaultLocations.router;
 
-var _this$3 = undefined;
+var _this$4 = undefined;
 
 var defaultLikes = new defaultRoutes$1();
 
@@ -1023,7 +1139,7 @@ defaultLikes.router.post('', passport.authenticate('jwt', { session: false }), f
 						exist = _context.sent;
 
 						if (!exist) {
-							_context.next = 10;
+							_context.next = 11;
 							break;
 						}
 
@@ -1032,41 +1148,39 @@ defaultLikes.router.post('', passport.authenticate('jwt', { session: false }), f
 
 					case 7:
 						_context.next = 9;
-						return Dish.update({ _id: exist.dishId, $isolated: true }, { $inc: {
-								likes: -1
-							}
-						});
+						return Dish.findOne({ _id: req.body.dishId });
 
 					case 9:
+						_context.sent.updateLikesCount();
+
 						return _context.abrupt('return', res.json({ success: true, msg: 'Like deleted' }));
 
-					case 10:
+					case 11:
 						newLike = new Like(_Object$assign({}, req.body, { userId: req.user._id }));
-						_context.next = 13;
+						_context.next = 14;
 						return newLike.save();
 
-					case 13:
-						_context.next = 15;
-						return Dish.update({ _id: newLike.dishId, $isolated: true }, { $inc: {
-								likes: 1
-							}
-						});
+					case 14:
+						_context.next = 16;
+						return Dish.findOne({ _id: req.body.dishId });
 
-					case 15:
+					case 16:
+						_context.sent.updateLikesCount();
+
 						return _context.abrupt('return', res.status(201).json(newLike));
 
-					case 18:
-						_context.prev = 18;
+					case 20:
+						_context.prev = 20;
 						_context.t0 = _context['catch'](0);
 
 						next(_context.t0);
 
-					case 21:
+					case 23:
 					case 'end':
 						return _context.stop();
 				}
 			}
-		}, _callee, _this$3, [[0, 18]]);
+		}, _callee, _this$4, [[0, 20]]);
 	}));
 
 	return function (_x, _x2, _x3) {
@@ -1078,7 +1192,7 @@ defaultLikes.initGet(Like, 'like');
 
 var likes = defaultLikes.router;
 
-var defaultComments = new defaultRoutes$1();
+var defaultComments = new defaultRoutes$1({ canRepeated: true });
 defaultComments.init(Comment, 'comments');
 
 var comments = defaultComments.router;
@@ -1105,7 +1219,7 @@ defaultToppings.init(Topping, 'topping');
 
 var toppings = defaultToppings.router;
 
-var _this$4 = undefined;
+var _this$5 = undefined;
 
 var getUniqueNumber = _asyncToGenerator(_regeneratorRuntime.mark(function _callee() {
 	var arr, orders, usedNumbers, unique;
@@ -1134,18 +1248,18 @@ var getUniqueNumber = _asyncToGenerator(_regeneratorRuntime.mark(function _calle
 					return _context.stop();
 			}
 		}
-	}, _callee, _this$4);
+	}, _callee, _this$5);
 }));
 
 var Schema$3 = mongoose__default.Schema;
 
 var OrderSchema = mongoose__default.Schema({
-	userId: {
+	user: {
 		type: Schema$3.Types.ObjectId,
 		ref: 'User'
 	},
 	dishes: [{
-		dishId: {
+		dish: {
 			type: Schema$3.Types.ObjectId,
 			ref: 'Dish',
 			required: true
@@ -1197,31 +1311,31 @@ OrderSchema.pre('save', function (next) {
 });
 
 OrderSchema.methods.toJSON = function () {
-	return _.pick(this, ['_id', 'userId', 'dishes', 'payStatus', 'completed', 'status', 'totalPrice', 'time', 'number']);
+	return _.pick(this, ['_id', 'user', 'dishes', 'payStatus', 'completed', 'status', 'totalPrice', 'time', 'number']);
 };
 
 var Order = mongoose__default.model('Order', OrderSchema);
 
-var params = {
+var defaultOrders = new defaultRoutes$1({
 	postMiddlewares: [passport.authenticate('jwt', { session: false })],
-	canRepeated: true
-};
+	canRepeated: true,
+	populate: 'user dishes.dish'
+});
 
-var defaultOrders = new defaultRoutes$1(params);
 defaultOrders.init(Order, 'order');
 
 var orders = defaultOrders.router;
 
-var _this$5 = undefined;
+var _this$6 = undefined;
 
-var params$1 = {
+var params = {
 	getMiddlewares: [], //middlewares for 'get' request
 	postMiddlewares: [], //middlewares for 'post' request
 	deleteMiddlewares: [], //middlewares for 'delete' request
 	putMiddlewares: [] //middlewares for 'put' request
 };
 
-var defaultEmployees = new defaultRoutes$1(params$1);
+var defaultEmployees = new defaultRoutes$1(params);
 
 // Register
 defaultEmployees.router.post('', function () {
@@ -1265,7 +1379,7 @@ defaultEmployees.router.post('', function () {
 						return _context.stop();
 				}
 			}
-		}, _callee, _this$5, [[6, 13]]);
+		}, _callee, _this$6, [[6, 13]]);
 	}));
 
 	return function (_x, _x2) {
@@ -1326,7 +1440,7 @@ defaultEmployees.router.post('/login', function () {
 						return _context2.stop();
 				}
 			}
-		}, _callee2, _this$5, [[6, 17]]);
+		}, _callee2, _this$6, [[6, 17]]);
 	}));
 
 	return function (_x3, _x4) {
@@ -1347,7 +1461,7 @@ defaultEmployees.router.post('/profile', passport.authenticate('jwt', { session:
 						return _context3.stop();
 				}
 			}
-		}, _callee3, _this$5);
+		}, _callee3, _this$6);
 	}));
 
 	return function (_x5, _x6) {
@@ -1360,66 +1474,8 @@ defaultEmployees.initPut(Employee, 'employees');
 
 var employees = defaultEmployees.router;
 
-var Schema$4 = mongoose__default.Schema;
-
-
-var daySchema = new Schema$4({
-	workTime: {
-		type: String,
-		required: true
-	},
-	break: [{
-		type: String,
-		required: true
-	}]
-}, {
-	_id: false
-});
-
-var SheduleSchema = mongoose__default.Schema({
-	monday: daySchema,
-	tuesday: daySchema,
-	wednesday: daySchema,
-	thursday: daySchema,
-	friday: daySchema,
-	saturday: daySchema
-}, {
-	timestamps: true
-});
-
-var Shedule = mongoose__default.model('Shedule', SheduleSchema);
-
-var params$2 = {
-	getMiddlewares: [
-		/*passport.authenticate('jwt', {session: false}),
-  (req, res, next) => {
-  	if (req.user && req.user.login) {
-  		return next();
-  	}
-  	return res.json({success: false, msg: 'access denied'})
-  }*/
-	], //middlewares for 'get' request
-	postMiddlewares: [], //middlewares for 'post' request
-	deleteMiddlewares: [], //middlewares for 'delete' request
-	putMiddlewares: [] //middlewares for 'put' request
-};
-
-var defaultShedules = new defaultRoutes$1(params$2);
-defaultShedules.init(Shedule, 'shedules');
-
-/*defaultShedules.router.get('', async(req, res, next) => {
-	try {
-
-	} catch(err) {
-		netx(err);
-	}
-})
-
-defaultShedules.initPost(Shedule, 'shedules');
-defaultShedules.initChange(Shedule, 'shedules');
-defaultShedules.initDelete(Shedule, 'shedules');*/
-
-var shedules = defaultShedules.router;
+var multipart = require('connect-multiparty');
+var multipartMiddleware = multipart();
 
 var app = express();
 var bodyParser = require('body-parser');
@@ -1432,6 +1488,8 @@ app.use(passport.session());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/static', express.static(path.join(__dirname, 'jenya')));
 var port = 3000;
+
+app.disable('x-powered-by');
 
 mongoose__default.Promise = Promise;
 // Connect to Database
@@ -1449,6 +1507,24 @@ app.get('/', function (req, res) {
 	res.send('dratuti');
 });
 
+app.get('/uploads/images/', multipartMiddleware, function (req, res) {
+	// don't forget to delete all req.files when done
+	res.sendFile(path.join(__dirname, '/images/logo.png'));
+});
+
+app.post('/uploads', multipartMiddleware, function (req, res) {
+
+	var img = req.files.null;
+
+	fs.readFile(img.path, function (err, data) {
+		var path$$1 = __dirname + '/uploads/images/' + img.originalFilename;
+		fs.writeFile(path$$1, data, function (err) {
+			if (err) throw err;
+			res.send('uploaded!');
+		});
+	});
+});
+
 app.use('/users', users);
 app.use('/dishes', dishes);
 app.use('/locations', locations);
@@ -1457,7 +1533,6 @@ app.use('/comments', comments);
 app.use('/toppings', toppings);
 app.use('/orders', orders);
 app.use('/employees', employees);
-app.use('/shedules', shedules);
 
 app.use(function (req, res, next) {
 	return res.status(404).json({ msg: '404 Not Found' });

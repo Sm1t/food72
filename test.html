@@ -7,6 +7,7 @@
 <body>
 	<button class="button_1">change time</button>
 	<button class="button_2">check modified</button>
+	<button class="button_3">like</button>
 	<div class="here"></div>
 
 
@@ -37,6 +38,15 @@
 				type: "GET",
 				url: "http://arusremservis.ru/dishes",
 				headers: {"if-modified-since": "Thu, 01 Jan 1970 00:00:00 GMT"},
+			});		
+		})
+		$('.button_3').click(function() {
+			$.ajax({
+				type: "POST",
+				url: "http://localhost:3000/likes",
+				data: '{"dishId":"58e54fe27a713119fcc75b13"}',
+				contentType: "application/json; charset=utf-8",
+				headers: {"Authorization": "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaG9uZSI6IjkxOTkzMjc3NjUiLCJpYXQiOjE0OTQyNTU0ODQsImV4cCI6MTQ5NDg2MDI4NH0.tYbl7OSyY43mjKdzMMBIYTldBREZtk_vFyqDRrq8rXc"},
 			});		
 		})
 	})

@@ -1,6 +1,6 @@
 export default async (model, modifiedSince) => {
 	modifiedSince = new Date(Date.parse(modifiedSince));
-	let news = await model.find({"updatedAt": {$gt: modifiedSince}});
+	let news = await model.find({"updatedAt": {$gt: `${modifiedSince}.999Z`}});
 	if (news[0]) {
 		let lastModified = news.reduce(function(prev, candidate) {
 			return (prev.updatedAt > candidate.updatedAt) ? prev : candidate;

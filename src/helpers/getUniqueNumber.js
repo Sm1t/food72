@@ -10,5 +10,5 @@ export default async () => {
 	const unique = arr.filter((value) => {
 		return usedNumbers.indexOf(value) == -1;
 	});
-	return unique[0];
+	return unique[0]; 
 }

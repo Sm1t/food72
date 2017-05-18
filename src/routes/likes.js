@@ -11,21 +11,15 @@ defaultLikes.router.post('', passport.authenticate('jwt', {session: false}), asy
 		const exist = await Like.findOne({dishId: req.body.dishId, userId: req.user._id});
 		if (exist) {
 			await exist.remove();
-			await Dish.update({_id: exist.dishId, $isolated: true}, {$inc:
-				{
-					likes: -1,
-				},
-			});
+			(await Dish.findOne({_id: req.body.dishId})).updateLikesCount();
 			return res.json({success: true, msg: 'Like deleted'});
 		}
+
 		const newLike = new Like(Object.assign({}, req.body, {userId: req.user._id}));
 		await newLike.save();
-		await Dish.update({_id: newLike.dishId, $isolated: true}, {$inc:
-			{
-				likes: 1
-			}
-		});
+		(await Dish.findOne({_id: req.body.dishId})).updateLikesCount();
 		return res.status(201).json(newLike);
+
 	} catch(err) {
 		next(err);
 	}

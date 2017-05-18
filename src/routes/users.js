@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import passport from 'passport';
 import jwt from 'jsonwebtoken';
 import config from '../config/index';
@@ -6,6 +8,8 @@ import User from '../models/user';
 import Like from '../models/like';
 import Comment from '../models/comment';
 import testDefaultRoutes from '../resources/testDefaultRoutes';
+var multipart = require('connect-multiparty');
+var multipartMiddleware = multipart();
 
 const defaultUsers = new testDefaultRoutes();
 
@@ -31,10 +35,10 @@ defaultUsers.router.post('/login', async(req, res) => {
 	const phone = req.body.phone,
 		  password = req.body.password;
 
-	const user = await User.findOne({phone: phone});
-	if (!user) return res.status(404).json({success: false, msg: "User not found"});
-
 	try {
+		const user = await User.findOne({phone: phone});
+		if (!user) return res.status(404).json({success: false, msg: "User not found"});
+
 		if (await bcrypt.compare(password, user.password)) {
 			const token = jwt.sign({phone}, config.secret, {expiresIn: 604800});
 			return res.json(Object.assign({}, user.toJSON(), {token: 'JWT ' + token}));
@@ -44,6 +48,22 @@ defaultUsers.router.post('/login', async(req, res) => {
 	} catch(err) {
 		return res.status(500).json({success: false, msg: err.name});
 	}
+})
+
+defaultUsers.router.post('/avatar', multipartMiddleware, passport.authenticate('jwt', {session: false}), async(req, res) => {
+	const img = req.files.null;
+
+	fs.readFile(img.path, (err, data) => {
+		const way = path.resolve(__dirname, '../uploads/images') + '/' + req.user._id + '.png';
+		fs.writeFile(way, data, err => {
+			if (err) throw err;
+			res.send('uploaded!');
+		})
+	})
+})
+
+defaultUsers.router.get('/avatar', passport.authenticate('jwt', {session: false}), async(req, res) => {
+	res.sendFile(path.resolve(__dirname, '../uploads/images') + '/' + req.user._id + '.png');
 })
 
 defaultUsers.router.post('/profile', passport.authenticate('jwt', {session: false}), async (req, res) => {

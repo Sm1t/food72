@@ -1,16 +1,16 @@
 import mongoose from 'mongoose';
 import { Schema } from 'mongoose';
+import updateRating from '../helpers/updateRating';
 
 const CommentSchema = mongoose.Schema({
-	dish: {
+	dishId: {
 		type: Schema.Types.ObjectId,
 		ref: 'Dish',
 		required: true
 	},
 	userId: {
 		type: Schema.Types.ObjectId,
-		ref: 'User',
-		required: true
+		ref: 'User'
 	},
 	text: {
 		type: String,
@@ -23,5 +23,11 @@ const CommentSchema = mongoose.Schema({
 }, {
 	timestamps: true
 })
+
+
+CommentSchema.post('save', function(next) {
+	return updateRating(this.dishId, this.rating)
+	.catch(next);
+});
 
 export default mongoose.model('Comment', CommentSchema);

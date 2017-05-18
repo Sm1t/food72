@@ -4,13 +4,13 @@ const { Schema } = mongoose;
 import _ from 'lodash';
 
 const OrderSchema = mongoose.Schema({
-	userId: {
+	user: {
 		type: Schema.Types.ObjectId,
 		ref: 'User'
 	},
 	dishes: [
 		{
-			dishId: {
+			dish: {
 				type: Schema.Types.ObjectId,
 				ref: 'Dish',
 				required: true
@@ -63,7 +63,7 @@ OrderSchema.pre('save', function(next) {
 })
 
 OrderSchema.methods.toJSON = function() {
-	return _.pick(this, ['_id', 'userId', 'dishes', 'payStatus', 'completed', 'status', 'totalPrice', 'time', 'number']);
+	return _.pick(this, ['_id', 'user', 'dishes', 'payStatus', 'completed', 'status', 'totalPrice', 'time', 'number']);
 }
 
 export default mongoose.model('Order', OrderSchema);

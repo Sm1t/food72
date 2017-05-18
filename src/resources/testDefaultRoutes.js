@@ -18,7 +18,7 @@ export default class defaultRoutes {
 	}
 	
 	initGet(model, modelName) {
-		this.router.get('/:id?/:select?', checkId, this.getMiddlewares || [], async(req, res, next) => {
+		this.router.get('/:id?/:select?', checkId, this.getMiddlewares || [], async(req, res, next ) => {
 			const id = req.params.id;
 			const select = req.params.select;
 
@@ -38,22 +38,17 @@ export default class defaultRoutes {
 					}	
 				} else {
 					if (req.user && req.user.phone) {
-						return res.json(await model.find({userId: req.user._id}));
+						return res.json(await model.find({userId: req.user._id}).populate(this.populate || ''));
 					}
 					const lastModified = await getLastModified(model);
 					res.set('Last-Modified', lastModified);
-					return res.json(await model.find());
+					return res.json(await model.find().populate(this.populate || ''));
 				}
-			}
-
-			const re = new RegExp('(^[0-9a-fA-F]{24}$)');
-			if (!id.match(re)) {
-				return res.status(400).json({success: false, msg: `Incorrect ${modelName} id`})
 			}
 
 			if (id && !select) {
 				try {
-					const elem = await model.findById(id);
+					const elem = await model.findById(id).populate(this.populate || '');
 					if (!elem) return res.status(404).json({success: false, msg: `${modelName} not found`})
 					return res.json(elem);
 				} catch(err) {

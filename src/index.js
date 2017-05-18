@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import Promise from 'bluebird';
 import path from 'path';
 import passport from 'passport';
+import fs from 'fs';
 import config from './config/index';
 import Passport from './config/passport';
 import users from './routes/users';
@@ -14,8 +15,9 @@ import comments from './routes/comments';
 import toppings from './routes/toppings';
 import orders from './routes/orders';
 import employees from './routes/employees';
-import shedules from './routes/shedules';
 import Topping from './models/topping';
+var multipart = require('connect-multiparty');
+var multipartMiddleware = multipart();
 
 
 
@@ -30,6 +32,8 @@ app.use(passport.session());
 app.use(express.static(path.join(__dirname, 'public'))); 
 app.use('/static', express.static(path.join(__dirname, 'jenya')));
 const port = 3000;
+
+app.disable('x-powered-by');
 
 
 mongoose.Promise = Promise;
@@ -48,6 +52,26 @@ app.get('/', (req, res) => {
 	res.send('dratuti');
 });
 
+
+app.get('/uploads/images/', multipartMiddleware, function(req, res) {
+  // don't forget to delete all req.files when done
+  res.sendFile(path.join(__dirname, '/images/logo.png'));
+});
+
+app.post('/uploads', multipartMiddleware, function(req, res) {
+
+	const img = req.files.null;
+
+	fs.readFile(img.path, (err, data) => {
+		const path = __dirname + '/uploads/images/' + img.originalFilename;
+		fs.writeFile(path, data, err => {
+			if (err) throw err;
+			res.send('uploaded!');
+		})
+	})
+})
+
+
 app.use('/users', users);
 app.use('/dishes', dishes);
 app.use('/locations', locations);
@@ -56,7 +80,6 @@ app.use('/comments', comments);
 app.use('/toppings', toppings);
 app.use('/orders', orders);
 app.use('/employees', employees);
-app.use('/shedules', shedules);
 
 app.use((req, res, next) => {
 	return res.status(404).json({msg: '404 Not Found'});

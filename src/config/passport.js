@@ -17,7 +17,6 @@ export default async function Passport(passport){
 				var user = await User.findOne({phone: jwt_payload.phone});
 			}
 			
-			//console.log(user);
 			if (user) {
 				return done(null, user);
 			} else done(null, false);
