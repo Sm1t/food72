@@ -1489,7 +1489,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/static', express.static(path.join(__dirname, 'jenya')));
 var port = 3000;
 
-app.disable('x-powered-by');
+//app.disable('x-powered-by');
 
 mongoose__default.Promise = Promise;
 // Connect to Database
@@ -1505,24 +1505,6 @@ mongoose__default.connection.on('error', function (err) {
 
 app.get('/', function (req, res) {
 	res.send('dratuti');
-});
-
-app.get('/uploads/images/', multipartMiddleware, function (req, res) {
-	// don't forget to delete all req.files when done
-	res.sendFile(path.join(__dirname, '/images/logo.png'));
-});
-
-app.post('/uploads', multipartMiddleware, function (req, res) {
-
-	var img = req.files.null;
-
-	fs.readFile(img.path, function (err, data) {
-		var path$$1 = __dirname + '/uploads/images/' + img.originalFilename;
-		fs.writeFile(path$$1, data, function (err) {
-			if (err) throw err;
-			res.send('uploaded!');
-		});
-	});
 });
 
 app.use('/users', users);

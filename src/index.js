@@ -33,8 +33,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/static', express.static(path.join(__dirname, 'jenya')));
 const port = 3000;
 
-app.disable('x-powered-by');
-
+//app.disable('x-powered-by');
 
 mongoose.Promise = Promise;
 // Connect to Database
@@ -51,25 +50,6 @@ mongoose.connection.on('error', (err) => {
 app.get('/', (req, res) => {
 	res.send('dratuti');
 });
-
-
-app.get('/uploads/images/', multipartMiddleware, function(req, res) {
-  // don't forget to delete all req.files when done
-  res.sendFile(path.join(__dirname, '/images/logo.png'));
-});
-
-app.post('/uploads', multipartMiddleware, function(req, res) {
-
-	const img = req.files.null;
-
-	fs.readFile(img.path, (err, data) => {
-		const path = __dirname + '/uploads/images/' + img.originalFilename;
-		fs.writeFile(path, data, err => {
-			if (err) throw err;
-			res.send('uploaded!');
-		})
-	})
-})
 
 
 app.use('/users', users);
