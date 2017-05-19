@@ -54,7 +54,7 @@ defaultUsers.router.post('/avatar', multipartMiddleware, passport.authenticate('
 	const img = req.files.null;
 
 	fs.readFile(img.path, (err, data) => {
-		const way = path.resolve(__dirname, '/uploads/images') + '/' + req.user._id + '.png';
+		const way = path.resolve(__dirname, 'uploads/images') + '/' + req.user._id + '.png';
 		fs.writeFile(way, data, err => {
 			if (err) res.send(err);
 			res.send('uploaded!');
@@ -64,7 +64,7 @@ defaultUsers.router.post('/avatar', multipartMiddleware, passport.authenticate('
 
 defaultUsers.router.get('/avatar', passport.authenticate('jwt', {session: false}), async(req, res) => {
 	try {
-		res.sendFile(path.resolve(__dirname, '/uploads/images') + '/' + req.user._id + '.png');
+		res.sendFile(path.resolve(__dirname, 'uploads/images') + '/' + req.user._id + '.png');
 	} catch(err) {
 		res.send(err);
 	}
