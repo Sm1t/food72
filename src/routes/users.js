@@ -52,19 +52,23 @@ defaultUsers.router.post('/login', async(req, res) => {
 
 defaultUsers.router.post('/avatar', multipartMiddleware, passport.authenticate('jwt', {session: false}), async(req, res) => {
 	const img = req.files.null;
+	console.log(req.files);
+	fs.writeFile(__dirname + '/debug.txt', JSON.stringify(req.files), err => {
+		if (err) throw err;
+	})
 
 	fs.readFile(img.path, (err, data) => {
-		const way = path.resolve(__dirname, '../src/uploads/images') + '/' + req.user._id + '.png';
+		const way = path.resolve(__dirname, '../uploads/images') + '/' + req.user._id + '.png';
 		fs.writeFile(way, data, err => {
 			if (err) res.send(err);
-			res.send('uploaded!');
+			res.json({success: true, link: 'arusremservis.ru/users/'});
 		})
 	})
 })
 
-defaultUsers.router.get('/avatar', passport.authenticate('jwt', {session: false}), async(req, res) => {
+defaultUsers.router.get('/avatar/:img', async(req, res) => {
 	try {
-		res.sendFile(path.resolve(__dirname, '../src/uploads/images') + '/' + req.user._id + '.png');
+		res.sendFile(path.resolve(__dirname, '../uploads/images') + '/' + req.user._id + '.png');
 	} catch(err) {
 		res.send(err);
 	}

@@ -16,8 +16,6 @@ import toppings from './routes/toppings';
 import orders from './routes/orders';
 import employees from './routes/employees';
 import Topping from './models/topping';
-var multipart = require('connect-multiparty');
-var multipartMiddleware = multipart();
 
 
 

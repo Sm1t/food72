@@ -22,44 +22,37 @@ export default class defaultRoutes {
 			const id = req.params.id;
 			const select = req.params.select;
 
-			if (!id && !select) {
-				let modifiedSince = req.headers['if-modified-since'];
-				if (modifiedSince) {
-					try {
-						const changes = await ifModifiedSince(model, modifiedSince);
-						if (changes) {
-							res.set('Last-Modified', changes.lastModified);
-							return res.json(changes.news);
-						} else {
-							return res.status(304).send();
+			try {
+				if (!id && !select) {
+					let modifiedSince = req.headers['if-modified-since'];
+					if (modifiedSince) {
+							const changes = await ifModifiedSince(model, modifiedSince);
+							if (changes) {
+								res.set('Last-Modified', changes.lastModified);
+								return res.json(changes.news);
+							} else {
+								return res.status(304).send();
+							}
+					} else {
+						if (req.user && req.user.phone) {
+							return res.json(await model.find({userId: req.user._id}).populate(this.populate || ''));
 						}
-					} catch(err) {
-						next(err);	
-					}	
-				} else {
-					if (req.user && req.user.phone) {
-						return res.json(await model.find({userId: req.user._id}).populate(this.populate || ''));
+						const lastModified = await getLastModified(model);
+						res.set('Last-Modified', lastModified);
+						return res.json(await model.find().populate(this.populate || ''));
 					}
-					const lastModified = await getLastModified(model);
-					res.set('Last-Modified', lastModified);
-					return res.json(await model.find().populate(this.populate || ''));
 				}
-			}
 
-			if (id && !select) {
-				try {
+				if (id && !select) {
 					const elem = await model.findById(id).populate(this.populate || '');
 					if (!elem) return res.status(404).json({success: false, msg: `${modelName} not found`})
 					return res.json(elem);
-				} catch(err) {
-					next(err);
 				}
-			}
-
-			try {
+			
 				const elem = await model.findById(id);
 				if (!elem[`${select}`]) return res.json({success: false, msg: `Cannot select ${select}`});
 				return res.json(elem[`${select}`]);
+
 			} catch(err) {
 				next(err);
 			}

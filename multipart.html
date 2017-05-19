@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+</head>
+<body>
+
+	<input type="file" id="filechooser">
+	<button onclick="uploadFile()">send</button>
+
+
+	<script
+	  src="https://code.jquery.com/jquery-3.2.1.min.js"
+	  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+	  crossorigin="anonymous">
+	</script>
+
+	<script>
+		function uploadFile() {
+		    var blobFile = $('#filechooser');
+		    //console.log(blobFile);
+		    var formData = new FormData();
+		    formData.append("null", blobFile[0].files[0]);
+		    console.log(formData);
+
+		    $.ajax({
+		       url: "http://localhost:3000/users/avatar",
+		       type: "POST",
+		       data: formData,
+		       processData: false,
+		       contentType: false,
+		       headers: {"Authorization": "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaG9uZSI6IjkxOTkzMjc3NjUiLCJpYXQiOjE0OTUxMTY0MjMsImV4cCI6MTQ5NTcyMTIyM30.Z62CZMFl57SH4Gg6K2adydBib39347HaqtwaNK-WxSo"},
+		       success: function(response) {
+		           // .. do something
+		       },
+		       error: function(jqXHR, textStatus, errorMessage) {
+		           console.log(errorMessage); // Optional
+		       }
+		    });
+		}
+	</script>
+</body>
+</html>

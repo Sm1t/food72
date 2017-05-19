@@ -1,0 +1,1 @@
+{"null":{"fieldName":"null","originalFilename":"Desert.jpg","path":"C:\\Users\\Sm1t\\AppData\\Local\\Temp\\05cmnrvrRtll56MhL7XP_heh.jpg","headers":{"content-disposition":"form-data; name=\"null\"; filename=\"Desert.jpg\"","content-type":"image/jpeg"},"size":845941,"name":"Desert.jpg","type":"image/jpeg"}}

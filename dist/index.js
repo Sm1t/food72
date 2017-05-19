@@ -14,6 +14,7 @@ var _regeneratorRuntime = _interopDefault(require('babel-runtime/regenerator'));
 var _asyncToGenerator = _interopDefault(require('babel-runtime/helpers/asyncToGenerator'));
 var bcrypt = _interopDefault(require('bcryptjs'));
 var _ = _interopDefault(require('lodash'));
+var _JSON$stringify = _interopDefault(require('babel-runtime/core-js/json/stringify'));
 var _Object$assign = _interopDefault(require('babel-runtime/core-js/object/assign'));
 var jwt = _interopDefault(require('jsonwebtoken'));
 var _classCallCheck = _interopDefault(require('babel-runtime/helpers/classCallCheck'));
@@ -549,7 +550,7 @@ var defaultRoutes$1 = function () {
 
 			this.router.get('/:id?/:select?', checkId, this.getMiddlewares || [], function () {
 				var _ref = _asyncToGenerator(_regeneratorRuntime.mark(function _callee(req, res, next) {
-					var id, select, modifiedSince, changes, lastModified, elem, _elem;
+					var id, select, modifiedSince, changes, lastModified, _elem, elem;
 
 					return _regeneratorRuntime.wrap(function _callee$(_context) {
 						while (1) {
@@ -557,20 +558,20 @@ var defaultRoutes$1 = function () {
 								case 0:
 									id = req.params.id;
 									select = req.params.select;
+									_context.prev = 2;
 
 									if (!(!id && !select)) {
-										_context.next = 37;
+										_context.next = 32;
 										break;
 									}
 
 									modifiedSince = req.headers['if-modified-since'];
 
 									if (!modifiedSince) {
-										_context.next = 22;
+										_context.next = 17;
 										break;
 									}
 
-									_context.prev = 5;
 									_context.next = 8;
 									return ifModifiedSince(model, modifiedSince);
 
@@ -589,108 +590,90 @@ var defaultRoutes$1 = function () {
 									return _context.abrupt('return', res.status(304).send());
 
 								case 15:
-									_context.next = 20;
+									_context.next = 32;
 									break;
 
 								case 17:
-									_context.prev = 17;
-									_context.t0 = _context['catch'](5);
-
-									next(_context.t0);
-
-								case 20:
-									_context.next = 37;
-									break;
-
-								case 22:
 									if (!(req.user && req.user.phone)) {
-										_context.next = 28;
+										_context.next = 23;
 										break;
 									}
 
-									_context.t1 = res;
-									_context.next = 26;
+									_context.t0 = res;
+									_context.next = 21;
 									return model.find({ userId: req.user._id }).populate(_this.populate || '');
 
-								case 26:
-									_context.t2 = _context.sent;
-									return _context.abrupt('return', _context.t1.json.call(_context.t1, _context.t2));
+								case 21:
+									_context.t1 = _context.sent;
+									return _context.abrupt('return', _context.t0.json.call(_context.t0, _context.t1));
 
-								case 28:
-									_context.next = 30;
+								case 23:
+									_context.next = 25;
 									return getLastModified(model);
 
-								case 30:
+								case 25:
 									lastModified = _context.sent;
 
 									res.set('Last-Modified', lastModified);
-									_context.t3 = res;
-									_context.next = 35;
+									_context.t2 = res;
+									_context.next = 30;
 									return model.find().populate(_this.populate || '');
 
-								case 35:
-									_context.t4 = _context.sent;
-									return _context.abrupt('return', _context.t3.json.call(_context.t3, _context.t4));
+								case 30:
+									_context.t3 = _context.sent;
+									return _context.abrupt('return', _context.t2.json.call(_context.t2, _context.t3));
 
-								case 37:
+								case 32:
 									if (!(id && !select)) {
-										_context.next = 50;
+										_context.next = 39;
 										break;
 									}
 
-									_context.prev = 38;
-									_context.next = 41;
+									_context.next = 35;
 									return model.findById(id).populate(_this.populate || '');
 
-								case 41:
-									elem = _context.sent;
+								case 35:
+									_elem = _context.sent;
 
-									if (elem) {
-										_context.next = 44;
+									if (_elem) {
+										_context.next = 38;
 										break;
 									}
 
 									return _context.abrupt('return', res.status(404).json({ success: false, msg: modelName + ' not found' }));
 
-								case 44:
-									return _context.abrupt('return', res.json(elem));
+								case 38:
+									return _context.abrupt('return', res.json(_elem));
 
-								case 47:
-									_context.prev = 47;
-									_context.t5 = _context['catch'](38);
-
-									next(_context.t5);
-
-								case 50:
-									_context.prev = 50;
-									_context.next = 53;
+								case 39:
+									_context.next = 41;
 									return model.findById(id);
 
-								case 53:
-									_elem = _context.sent;
+								case 41:
+									elem = _context.sent;
 
-									if (_elem['' + select]) {
-										_context.next = 56;
+									if (elem['' + select]) {
+										_context.next = 44;
 										break;
 									}
 
 									return _context.abrupt('return', res.json({ success: false, msg: 'Cannot select ' + select }));
 
-								case 56:
-									return _context.abrupt('return', res.json(_elem['' + select]));
+								case 44:
+									return _context.abrupt('return', res.json(elem['' + select]));
 
-								case 59:
-									_context.prev = 59;
-									_context.t6 = _context['catch'](50);
+								case 47:
+									_context.prev = 47;
+									_context.t4 = _context['catch'](2);
 
-									next(_context.t6);
+									next(_context.t4);
 
-								case 62:
+								case 50:
 								case 'end':
 									return _context.stop();
 							}
 						}
-					}, _callee, _this, [[5, 17], [38, 47], [50, 59]]);
+					}, _callee, _this, [[2, 47]]);
 				}));
 
 				return function (_x, _x2, _x3) {
@@ -877,8 +860,8 @@ var defaultRoutes$1 = function () {
 
 var _this = undefined;
 
-var multipart$1 = require('connect-multiparty');
-var multipartMiddleware$1 = multipart$1();
+var multipart = require('connect-multiparty');
+var multipartMiddleware = multipart();
 
 var defaultUsers = new defaultRoutes$1();
 
@@ -992,7 +975,7 @@ defaultUsers.router.post('/login', function () {
 	};
 }());
 
-defaultUsers.router.post('/avatar', multipartMiddleware$1, passport.authenticate('jwt', { session: false }), function () {
+defaultUsers.router.post('/avatar', multipartMiddleware, passport.authenticate('jwt', { session: false }), function () {
 	var _ref3 = _asyncToGenerator(_regeneratorRuntime.mark(function _callee3(req, res) {
 		var img;
 		return _regeneratorRuntime.wrap(function _callee3$(_context3) {
@@ -1001,16 +984,20 @@ defaultUsers.router.post('/avatar', multipartMiddleware$1, passport.authenticate
 					case 0:
 						img = req.files.null;
 
+						console.log(req.files);
+						fs.writeFile(__dirname + '/debug.txt', _JSON$stringify(req.files), function (err) {
+							if (err) throw err;
+						});
 
 						fs.readFile(img.path, function (err, data) {
-							var way = path.resolve(__dirname, '../src/uploads/images') + '/' + req.user._id + '.png';
+							var way = path.resolve(__dirname, '../uploads/images') + '/' + req.user._id + '.png';
 							fs.writeFile(way, data, function (err) {
 								if (err) res.send(err);
-								res.send('uploaded!');
+								res.json({ success: true, link: 'arusremservis.ru/users/' });
 							});
 						});
 
-					case 2:
+					case 4:
 					case 'end':
 						return _context3.stop();
 				}
@@ -1023,14 +1010,14 @@ defaultUsers.router.post('/avatar', multipartMiddleware$1, passport.authenticate
 	};
 }());
 
-defaultUsers.router.get('/avatar', passport.authenticate('jwt', { session: false }), function () {
+defaultUsers.router.get('/avatar/:img', function () {
 	var _ref4 = _asyncToGenerator(_regeneratorRuntime.mark(function _callee4(req, res) {
 		return _regeneratorRuntime.wrap(function _callee4$(_context4) {
 			while (1) {
 				switch (_context4.prev = _context4.next) {
 					case 0:
 						try {
-							res.sendFile(path.resolve(__dirname, '../src/uploads/images') + '/' + req.user._id + '.png');
+							res.sendFile(path.resolve(__dirname, '../uploads/images') + '/' + req.user._id + '.png');
 						} catch (err) {
 							res.send(err);
 						}
@@ -1477,9 +1464,6 @@ defaultEmployees.initGet(Employee, 'employees');
 defaultEmployees.initPut(Employee, 'employees');
 
 var employees = defaultEmployees.router;
-
-var multipart = require('connect-multiparty');
-var multipartMiddleware = multipart();
 
 var app = express();
 var bodyParser = require('body-parser');
