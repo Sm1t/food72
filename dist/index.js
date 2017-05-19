@@ -1005,7 +1005,7 @@ defaultUsers.router.post('/avatar', multipartMiddleware$1, passport.authenticate
 						fs.readFile(img.path, function (err, data) {
 							var way = path.resolve(__dirname, '../uploads/images') + '/' + req.user._id + '.png';
 							fs.writeFile(way, data, function (err) {
-								if (err) throw err;
+								if (err) res.send(err);
 								res.send('uploaded!');
 							});
 						});
@@ -1029,7 +1029,11 @@ defaultUsers.router.get('/avatar', passport.authenticate('jwt', { session: false
 			while (1) {
 				switch (_context4.prev = _context4.next) {
 					case 0:
-						res.sendFile(path.resolve(__dirname, '../uploads/images') + '/' + req.user._id + '.png');
+						try {
+							res.sendFile(path.resolve(__dirname, '../uploads/images') + '/' + req.user._id + '.png');
+						} catch (err) {
+							res.send(err);
+						}
 
 					case 1:
 					case 'end':
@@ -1489,7 +1493,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/static', express.static(path.join(__dirname, 'jenya')));
 var port = 3000;
 
-//app.disable('x-powered-by');
+app.disable('x-powered-by');
 
 mongoose__default.Promise = Promise;
 // Connect to Database

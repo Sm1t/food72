@@ -56,14 +56,18 @@ defaultUsers.router.post('/avatar', multipartMiddleware, passport.authenticate('
 	fs.readFile(img.path, (err, data) => {
 		const way = path.resolve(__dirname, '../uploads/images') + '/' + req.user._id + '.png';
 		fs.writeFile(way, data, err => {
-			if (err) throw err;
+			if (err) res.send(err);
 			res.send('uploaded!');
 		})
 	})
 })
 
 defaultUsers.router.get('/avatar', passport.authenticate('jwt', {session: false}), async(req, res) => {
-	res.sendFile(path.resolve(__dirname, '../uploads/images') + '/' + req.user._id + '.png');
+	try {
+		res.sendFile(path.resolve(__dirname, '../uploads/images') + '/' + req.user._id + '.png');
+	} catch(err) {
+		res.send(err);
+	}
 })
 
 defaultUsers.router.post('/profile', passport.authenticate('jwt', {session: false}), async (req, res) => {

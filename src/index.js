@@ -33,7 +33,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/static', express.static(path.join(__dirname, 'jenya')));
 const port = 3000;
 
-//app.disable('x-powered-by');
+app.disable('x-powered-by');
 
 mongoose.Promise = Promise;
 // Connect to Database
