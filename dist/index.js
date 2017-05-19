@@ -975,14 +975,14 @@ defaultUsers.router.post('/login', function () {
 	};
 }());
 
-defaultUsers.router.post('/avatar', multipartMiddleware, passport.authenticate('jwt', { session: false }), function () {
+defaultUsers.router.post('/avatars', multipartMiddleware, passport.authenticate('jwt', { session: false }), function () {
 	var _ref3 = _asyncToGenerator(_regeneratorRuntime.mark(function _callee3(req, res) {
 		var img;
 		return _regeneratorRuntime.wrap(function _callee3$(_context3) {
 			while (1) {
 				switch (_context3.prev = _context3.next) {
 					case 0:
-						img = req.files.null;
+						img = req.files.avatar;
 
 						console.log(req.files);
 						fs.writeFile(__dirname + '/debug.txt', _JSON$stringify(req.files), function (err) {
@@ -990,10 +990,10 @@ defaultUsers.router.post('/avatar', multipartMiddleware, passport.authenticate('
 						});
 
 						fs.readFile(img.path, function (err, data) {
-							var way = path.resolve(__dirname, '../uploads/images') + '/' + req.user._id + '.png';
+							var way = path.resolve(__dirname, '../uploads/avatars') + '/' + req.user._id + '.png';
 							fs.writeFile(way, data, function (err) {
 								if (err) res.send(err);
-								res.json({ success: true, link: 'arusremservis.ru/users/' });
+								res.json({ success: true, link: 'arusremservis.ru/users/avatars/' + req.user._id + '.png' });
 							});
 						});
 
@@ -1010,14 +1010,14 @@ defaultUsers.router.post('/avatar', multipartMiddleware, passport.authenticate('
 	};
 }());
 
-defaultUsers.router.get('/avatar/:img', function () {
+defaultUsers.router.get('/avatars/:img', function () {
 	var _ref4 = _asyncToGenerator(_regeneratorRuntime.mark(function _callee4(req, res) {
 		return _regeneratorRuntime.wrap(function _callee4$(_context4) {
 			while (1) {
 				switch (_context4.prev = _context4.next) {
 					case 0:
 						try {
-							res.sendFile(path.resolve(__dirname, '../uploads/images') + '/' + req.user._id + '.png');
+							res.sendFile(path.resolve(__dirname, '../uploads/avatars') + '/' + req.params.img);
 						} catch (err) {
 							res.send(err);
 						}

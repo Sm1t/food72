@@ -21,11 +21,11 @@
 		    var blobFile = $('#filechooser');
 		    //console.log(blobFile);
 		    var formData = new FormData();
-		    formData.append("null", blobFile[0].files[0]);
+		    formData.append("avatar", blobFile[0].files[0]);
 		    console.log(formData);
 
 		    $.ajax({
-		       url: "http://localhost:3000/users/avatar",
+		       url: "http://localhost:3000/users/avatars",
 		       type: "POST",
 		       data: formData,
 		       processData: false,
