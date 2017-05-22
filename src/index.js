@@ -45,11 +45,6 @@ mongoose.connection.on('error', (err) => {
 	console.log('database error' + err);
 });
 
-app.get('/', (req, res) => {
-	res.send('dratuti');
-});
-
-
 app.use('/users', users);
 app.use('/dishes', dishes);
 app.use('/locations', locations);

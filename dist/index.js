@@ -1595,10 +1595,6 @@ mongoose__default.connection.on('error', function (err) {
 	console.log('database error' + err);
 });
 
-app.get('/', function (req, res) {
-	res.send('dratuti');
-});
-
 app.use('/users', users);
 app.use('/dishes', dishes);
 app.use('/locations', locations);

@@ -88,7 +88,7 @@ defaultUsers.router.put('', passport.authenticate('jwt', {session: false}), asyn
 		const user = await User.findOneAndUpdate({_id: req.user._id}, {$set:
 			req.body,
 			returnNewDocument : true
-		}, )
+		})
 		return res.json(user);
 	} catch(err) {
 		next(err);
