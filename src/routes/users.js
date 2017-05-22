@@ -49,17 +49,24 @@ defaultUsers.router.post('/login', async(req, res, next) => {
 	}
 })
 
-defaultUsers.router.post('/avatars', multipartMiddleware, passport.authenticate('jwt', {session: false}), async(req, res) => {
+defaultUsers.router.post('/avatars', multipartMiddleware, passport.authenticate('jwt', {session: false}), async(req, res, next) => {
 	const img = req.files.avatar;
 	fs.writeFile(__dirname + '/debug.txt', JSON.stringify(req.files), err => {
 		if (err) throw err;
 	})
 
+	let oldImage = (await User.findById(req.user._id)).avatar;
+	oldImage = path.resolve(__dirname, '../uploads/avatars') + '/' + oldImage.split('/avatars/')[1];
+	fs.unlink(oldImage, err => {
+		if (err) throw err;
+	})
+
 	fs.readFile(img.path, (err, data) => {
-		const way = path.resolve(__dirname, '../uploads/avatars') + '/' + req.user._id + '.png';
+		if (err) next(err);
+		const way = path.resolve(__dirname, '../uploads/avatars') + '/' + img.originalFilename;
 		fs.writeFile(way, data, async(err) => {
-			if (err) res.send(err);
-			const link = 'http://arusremservis.ru/users/avatars/' + req.user._id + '.png';
+			if (err) next(err);
+			const link = 'http://arusremservis.ru/users/avatars/' + img.originalFilename;
 			await User.findOneAndUpdate({_id: req.user._id}, {$set: {
 				avatar: link
 			}});
@@ -78,10 +85,11 @@ defaultUsers.router.get('/avatars/:img', async(req, res) => {
 
 defaultUsers.router.put('', passport.authenticate('jwt', {session: false}), async(req, res, next) => {
 	try {
-		await User.findOneAndUpdate({_id: req.user._id}, {$set:
-			req.body
-		})
-		return res.json({success: true, msg: 'User updated'});
+		const user = await User.findOneAndUpdate({_id: req.user._id}, {$set:
+			req.body,
+			returnNewDocument : true
+		}, )
+		return res.json(user);
 	} catch(err) {
 		next(err);
 	}

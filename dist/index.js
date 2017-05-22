@@ -976,8 +976,8 @@ defaultUsers.router.post('/login', function () {
 }());
 
 defaultUsers.router.post('/avatars', multipartMiddleware, passport.authenticate('jwt', { session: false }), function () {
-	var _ref3 = _asyncToGenerator(_regeneratorRuntime.mark(function _callee4(req, res) {
-		var img;
+	var _ref3 = _asyncToGenerator(_regeneratorRuntime.mark(function _callee4(req, res, next) {
+		var img, oldImage;
 		return _regeneratorRuntime.wrap(function _callee4$(_context4) {
 			while (1) {
 				switch (_context4.prev = _context4.next) {
@@ -988,8 +988,20 @@ defaultUsers.router.post('/avatars', multipartMiddleware, passport.authenticate(
 							if (err) throw err;
 						});
 
+						_context4.next = 4;
+						return User.findById(req.user._id);
+
+					case 4:
+						oldImage = _context4.sent.avatar;
+
+						oldImage = path.resolve(__dirname, '../uploads/avatars') + '/' + oldImage.split('/avatars/')[1];
+						fs.unlink(oldImage, function (err) {
+							if (err) throw err;
+						});
+
 						fs.readFile(img.path, function (err, data) {
-							var way = path.resolve(__dirname, '../uploads/avatars') + '/' + req.user._id + '.png';
+							if (err) next(err);
+							var way = path.resolve(__dirname, '../uploads/avatars') + '/' + img.originalFilename;
 							fs.writeFile(way, data, function () {
 								var _ref4 = _asyncToGenerator(_regeneratorRuntime.mark(function _callee3(err) {
 									var link;
@@ -997,8 +1009,8 @@ defaultUsers.router.post('/avatars', multipartMiddleware, passport.authenticate(
 										while (1) {
 											switch (_context3.prev = _context3.next) {
 												case 0:
-													if (err) res.send(err);
-													link = 'http://arusremservis.ru/users/avatars/' + req.user._id + '.png';
+													if (err) next(err);
+													link = 'http://arusremservis.ru/users/avatars/' + img.originalFilename;
 													_context3.next = 4;
 													return User.findOneAndUpdate({ _id: req.user._id }, { $set: {
 															avatar: link
@@ -1015,13 +1027,13 @@ defaultUsers.router.post('/avatars', multipartMiddleware, passport.authenticate(
 									}, _callee3, _this);
 								}));
 
-								return function (_x9) {
+								return function (_x10) {
 									return _ref4.apply(this, arguments);
 								};
 							}());
 						});
 
-					case 3:
+					case 8:
 					case 'end':
 						return _context4.stop();
 				}
@@ -1029,7 +1041,7 @@ defaultUsers.router.post('/avatars', multipartMiddleware, passport.authenticate(
 		}, _callee4, _this);
 	}));
 
-	return function (_x7, _x8) {
+	return function (_x7, _x8, _x9) {
 		return _ref3.apply(this, arguments);
 	};
 }());
@@ -1054,40 +1066,43 @@ defaultUsers.router.get('/avatars/:img', function () {
 		}, _callee5, _this);
 	}));
 
-	return function (_x10, _x11) {
+	return function (_x11, _x12) {
 		return _ref5.apply(this, arguments);
 	};
 }());
 
 defaultUsers.router.put('', passport.authenticate('jwt', { session: false }), function () {
 	var _ref6 = _asyncToGenerator(_regeneratorRuntime.mark(function _callee6(req, res, next) {
+		var user;
 		return _regeneratorRuntime.wrap(function _callee6$(_context6) {
 			while (1) {
 				switch (_context6.prev = _context6.next) {
 					case 0:
 						_context6.prev = 0;
 						_context6.next = 3;
-						return User.findOneAndUpdate({ _id: req.user._id }, { $set: req.body
+						return User.findOneAndUpdate({ _id: req.user._id }, { $set: req.body,
+							returnNewDocument: true
 						});
 
 					case 3:
-						return _context6.abrupt('return', res.json({ success: true, msg: 'User updated' }));
+						user = _context6.sent;
+						return _context6.abrupt('return', res.json(user));
 
-					case 6:
-						_context6.prev = 6;
+					case 7:
+						_context6.prev = 7;
 						_context6.t0 = _context6['catch'](0);
 
 						next(_context6.t0);
 
-					case 9:
+					case 10:
 					case 'end':
 						return _context6.stop();
 				}
 			}
-		}, _callee6, _this, [[0, 6]]);
+		}, _callee6, _this, [[0, 7]]);
 	}));
 
-	return function (_x12, _x13, _x14) {
+	return function (_x13, _x14, _x15) {
 		return _ref6.apply(this, arguments);
 	};
 }());
@@ -1119,7 +1134,7 @@ defaultUsers.router.delete('', passport.authenticate('jwt', { session: false }),
 		}, _callee7, _this, [[0, 6]]);
 	}));
 
-	return function (_x15, _x16, _x17) {
+	return function (_x16, _x17, _x18) {
 		return _ref7.apply(this, arguments);
 	};
 }());
@@ -1140,7 +1155,7 @@ defaultUsers.router.post('/profile', passport.authenticate('jwt', { session: fal
 		}, _callee8, _this);
 	}));
 
-	return function (_x18, _x19) {
+	return function (_x19, _x20) {
 		return _ref8.apply(this, arguments);
 	};
 }());
@@ -1563,7 +1578,7 @@ app.use(cors());
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/static', express.static(path.join(__dirname, 'jenya')));
+app.use('/static', express.static(path.join(__dirname, 'site')));
 var port = 3000;
 
 app.disable('x-powered-by');

@@ -28,7 +28,7 @@ app.use(cors());
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.static(path.join(__dirname, 'public'))); 
-app.use('/static', express.static(path.join(__dirname, 'jenya')));
+app.use('/static', express.static(path.join(__dirname, 'site')));
 const port = 3000;
 
 app.disable('x-powered-by');
