@@ -867,7 +867,7 @@ var defaultUsers = new defaultRoutes$1();
 
 // Register
 defaultUsers.router.post('', function () {
-	var _ref = _asyncToGenerator(_regeneratorRuntime.mark(function _callee(req, res) {
+	var _ref = _asyncToGenerator(_regeneratorRuntime.mark(function _callee(req, res, next) {
 		var exist, user, phone, token;
 		return _regeneratorRuntime.wrap(function _callee$(_context) {
 			while (1) {
@@ -898,10 +898,9 @@ defaultUsers.router.post('', function () {
 						_context.prev = 12;
 						_context.t0 = _context['catch'](5);
 
-						console.log(_context.t0);
-						return _context.abrupt('return', res.status(500).json({ success: false, msg: _context.t0.name }));
+						next(_context.t0);
 
-					case 16:
+					case 15:
 					case 'end':
 						return _context.stop();
 				}
@@ -909,14 +908,14 @@ defaultUsers.router.post('', function () {
 		}, _callee, _this, [[5, 12]]);
 	}));
 
-	return function (_x, _x2) {
+	return function (_x, _x2, _x3) {
 		return _ref.apply(this, arguments);
 	};
 }());
 
 // login
 defaultUsers.router.post('/login', function () {
-	var _ref2 = _asyncToGenerator(_regeneratorRuntime.mark(function _callee2(req, res) {
+	var _ref2 = _asyncToGenerator(_regeneratorRuntime.mark(function _callee2(req, res, next) {
 		var phone, password, user, token;
 		return _regeneratorRuntime.wrap(function _callee2$(_context2) {
 			while (1) {
@@ -960,7 +959,8 @@ defaultUsers.router.post('/login', function () {
 					case 17:
 						_context2.prev = 17;
 						_context2.t0 = _context2['catch'](1);
-						return _context2.abrupt('return', res.status(500).json({ success: false, msg: _context2.t0.name }));
+
+						next(_context2.t0);
 
 					case 20:
 					case 'end':
@@ -970,51 +970,75 @@ defaultUsers.router.post('/login', function () {
 		}, _callee2, _this, [[1, 17]]);
 	}));
 
-	return function (_x3, _x4) {
+	return function (_x4, _x5, _x6) {
 		return _ref2.apply(this, arguments);
 	};
 }());
 
 defaultUsers.router.post('/avatars', multipartMiddleware, passport.authenticate('jwt', { session: false }), function () {
-	var _ref3 = _asyncToGenerator(_regeneratorRuntime.mark(function _callee3(req, res) {
+	var _ref3 = _asyncToGenerator(_regeneratorRuntime.mark(function _callee4(req, res) {
 		var img;
-		return _regeneratorRuntime.wrap(function _callee3$(_context3) {
+		return _regeneratorRuntime.wrap(function _callee4$(_context4) {
 			while (1) {
-				switch (_context3.prev = _context3.next) {
+				switch (_context4.prev = _context4.next) {
 					case 0:
 						img = req.files.avatar;
 
-						console.log(req.files);
 						fs.writeFile(__dirname + '/debug.txt', _JSON$stringify(req.files), function (err) {
 							if (err) throw err;
 						});
 
 						fs.readFile(img.path, function (err, data) {
 							var way = path.resolve(__dirname, '../uploads/avatars') + '/' + req.user._id + '.png';
-							fs.writeFile(way, data, function (err) {
-								if (err) res.send(err);
-								res.json({ success: true, link: 'arusremservis.ru/users/avatars/' + req.user._id + '.png' });
-							});
+							fs.writeFile(way, data, function () {
+								var _ref4 = _asyncToGenerator(_regeneratorRuntime.mark(function _callee3(err) {
+									var link;
+									return _regeneratorRuntime.wrap(function _callee3$(_context3) {
+										while (1) {
+											switch (_context3.prev = _context3.next) {
+												case 0:
+													if (err) res.send(err);
+													link = 'http://arusremservis.ru/users/avatars/' + req.user._id + '.png';
+													_context3.next = 4;
+													return User.findOneAndUpdate({ _id: req.user._id }, { $set: {
+															avatar: link
+														} });
+
+												case 4:
+													res.json({ success: true, link: link });
+
+												case 5:
+												case 'end':
+													return _context3.stop();
+											}
+										}
+									}, _callee3, _this);
+								}));
+
+								return function (_x9) {
+									return _ref4.apply(this, arguments);
+								};
+							}());
 						});
 
-					case 4:
+					case 3:
 					case 'end':
-						return _context3.stop();
+						return _context4.stop();
 				}
 			}
-		}, _callee3, _this);
+		}, _callee4, _this);
 	}));
 
-	return function (_x5, _x6) {
+	return function (_x7, _x8) {
 		return _ref3.apply(this, arguments);
 	};
 }());
 
 defaultUsers.router.get('/avatars/:img', function () {
-	var _ref4 = _asyncToGenerator(_regeneratorRuntime.mark(function _callee4(req, res) {
-		return _regeneratorRuntime.wrap(function _callee4$(_context4) {
+	var _ref5 = _asyncToGenerator(_regeneratorRuntime.mark(function _callee5(req, res) {
+		return _regeneratorRuntime.wrap(function _callee5$(_context5) {
 			while (1) {
-				switch (_context4.prev = _context4.next) {
+				switch (_context5.prev = _context5.next) {
 					case 0:
 						try {
 							res.sendFile(path.resolve(__dirname, '../uploads/avatars') + '/' + req.params.img);
@@ -1024,39 +1048,104 @@ defaultUsers.router.get('/avatars/:img', function () {
 
 					case 1:
 					case 'end':
-						return _context4.stop();
-				}
-			}
-		}, _callee4, _this);
-	}));
-
-	return function (_x7, _x8) {
-		return _ref4.apply(this, arguments);
-	};
-}());
-
-defaultUsers.router.post('/profile', passport.authenticate('jwt', { session: false }), function () {
-	var _ref5 = _asyncToGenerator(_regeneratorRuntime.mark(function _callee5(req, res) {
-		return _regeneratorRuntime.wrap(function _callee5$(_context5) {
-			while (1) {
-				switch (_context5.prev = _context5.next) {
-					case 0:
-						res.json(['/dishes', 'toppings', '/locations'].indexOf(req.path));
-
-					case 1:
-					case 'end':
 						return _context5.stop();
 				}
 			}
 		}, _callee5, _this);
 	}));
 
-	return function (_x9, _x10) {
+	return function (_x10, _x11) {
 		return _ref5.apply(this, arguments);
 	};
 }());
 
-defaultUsers.init(User, 'user');
+defaultUsers.router.put('', passport.authenticate('jwt', { session: false }), function () {
+	var _ref6 = _asyncToGenerator(_regeneratorRuntime.mark(function _callee6(req, res, next) {
+		return _regeneratorRuntime.wrap(function _callee6$(_context6) {
+			while (1) {
+				switch (_context6.prev = _context6.next) {
+					case 0:
+						_context6.prev = 0;
+						_context6.next = 3;
+						return User.findOneAndUpdate({ _id: req.user._id }, { $set: req.body
+						});
+
+					case 3:
+						return _context6.abrupt('return', res.json({ success: true, msg: 'User updated' }));
+
+					case 6:
+						_context6.prev = 6;
+						_context6.t0 = _context6['catch'](0);
+
+						next(_context6.t0);
+
+					case 9:
+					case 'end':
+						return _context6.stop();
+				}
+			}
+		}, _callee6, _this, [[0, 6]]);
+	}));
+
+	return function (_x12, _x13, _x14) {
+		return _ref6.apply(this, arguments);
+	};
+}());
+
+defaultUsers.router.delete('', passport.authenticate('jwt', { session: false }), function () {
+	var _ref7 = _asyncToGenerator(_regeneratorRuntime.mark(function _callee7(req, res, next) {
+		return _regeneratorRuntime.wrap(function _callee7$(_context7) {
+			while (1) {
+				switch (_context7.prev = _context7.next) {
+					case 0:
+						_context7.prev = 0;
+						_context7.next = 3;
+						return User.findOneAndRemove({ _id: req.user._id });
+
+					case 3:
+						return _context7.abrupt('return', res.json({ success: true, msg: 'User updated' }));
+
+					case 6:
+						_context7.prev = 6;
+						_context7.t0 = _context7['catch'](0);
+
+						next(_context7.t0);
+
+					case 9:
+					case 'end':
+						return _context7.stop();
+				}
+			}
+		}, _callee7, _this, [[0, 6]]);
+	}));
+
+	return function (_x15, _x16, _x17) {
+		return _ref7.apply(this, arguments);
+	};
+}());
+
+defaultUsers.router.post('/profile', passport.authenticate('jwt', { session: false }), function () {
+	var _ref8 = _asyncToGenerator(_regeneratorRuntime.mark(function _callee8(req, res) {
+		return _regeneratorRuntime.wrap(function _callee8$(_context8) {
+			while (1) {
+				switch (_context8.prev = _context8.next) {
+					case 0:
+						res.json(['/dishes', 'toppings', '/locations'].indexOf(req.path));
+
+					case 1:
+					case 'end':
+						return _context8.stop();
+				}
+			}
+		}, _callee8, _this);
+	}));
+
+	return function (_x18, _x19) {
+		return _ref8.apply(this, arguments);
+	};
+}());
+
+defaultUsers.initGet(User, 'user');
 
 var users = defaultUsers.router;
 

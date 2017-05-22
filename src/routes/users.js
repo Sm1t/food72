@@ -14,7 +14,7 @@ var multipartMiddleware = multipart();
 const defaultUsers = new testDefaultRoutes();
 
 // Register
-defaultUsers.router.post('', async(req, res) => {
+defaultUsers.router.post('', async(req, res, next) => {
 	const exist = await User.findOne({phone: req.body.phone});
 	if (exist) return res.status(400).json({success: false, msg: 'User already exist'});
 
@@ -25,13 +25,12 @@ defaultUsers.router.post('', async(req, res) => {
 		const token = jwt.sign({phone}, config.secret, {expiresIn: 604800});
 		return res.status(201).json(Object.assign({}, user.toJSON(), {token: 'JWT ' + token}));
 	} catch(err) {
-		console.log(err);
-		return res.status(500).json({success: false, msg: err.name});
+		next(err);
 	}
 });
 
 // login
-defaultUsers.router.post('/login', async(req, res) => {
+defaultUsers.router.post('/login', async(req, res, next) => {
 	const phone = req.body.phone,
 		  password = req.body.password;
 
@@ -46,22 +45,25 @@ defaultUsers.router.post('/login', async(req, res) => {
 			return res.status(403).json({success: false, msg: 'Wrong password'});
 		}
 	} catch(err) {
-		return res.status(500).json({success: false, msg: err.name});
+		next(err);
 	}
 })
 
 defaultUsers.router.post('/avatars', multipartMiddleware, passport.authenticate('jwt', {session: false}), async(req, res) => {
 	const img = req.files.avatar;
-	console.log(req.files);
 	fs.writeFile(__dirname + '/debug.txt', JSON.stringify(req.files), err => {
 		if (err) throw err;
 	})
 
 	fs.readFile(img.path, (err, data) => {
 		const way = path.resolve(__dirname, '../uploads/avatars') + '/' + req.user._id + '.png';
-		fs.writeFile(way, data, err => {
+		fs.writeFile(way, data, async(err) => {
 			if (err) res.send(err);
-			res.json({success: true, link: 'arusremservis.ru/users/avatars/' + req.user._id + '.png'});
+			const link = 'http://arusremservis.ru/users/avatars/' + req.user._id + '.png';
+			await User.findOneAndUpdate({_id: req.user._id}, {$set: {
+				avatar: link
+			}});
+			res.json({success: true, link: link});
 		})
 	})
 })
@@ -74,11 +76,30 @@ defaultUsers.router.get('/avatars/:img', async(req, res) => {
 	}
 })
 
+defaultUsers.router.put('', passport.authenticate('jwt', {session: false}), async(req, res, next) => {
+	try {
+		await User.findOneAndUpdate({_id: req.user._id}, {$set:
+			req.body
+		})
+		return res.json({success: true, msg: 'User updated'});
+	} catch(err) {
+		next(err);
+	}
+})
+
+defaultUsers.router.delete('', passport.authenticate('jwt', {session: false}), async(req, res, next) => {
+	try {
+		await User.findOneAndRemove({_id: req.user._id})
+		return res.json({success: true, msg: 'User updated'});
+	} catch(err) {
+		next(err);
+	}
+})
+
 defaultUsers.router.post('/profile', passport.authenticate('jwt', {session: false}), async (req, res) => {
 	res.json(['/dishes', 'toppings', '/locations'].indexOf(req.path));
 })
 
-defaultUsers.init(User, 'user');
+defaultUsers.initGet(User, 'user');
 
 export default defaultUsers.router;
-

@@ -103,6 +103,7 @@ export default class defaultRoutes {
 	initDelete(model, modelName) {
 		this.router.delete('/:id', checkId, this.deleteMiddlewares || [], async(req, res, next) => {
 			const id = req.params.id;
+
 			try {
 				const elem = await model.findById(id);
 				if (!elem) return res.status(404).json({success:false, msg: `${modelName} not found`});
