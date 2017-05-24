@@ -1578,7 +1578,7 @@ app.use(cors());
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/static', express.static(path.join(__dirname + '../site')));
+app.use('/static', express.static(path.resolve(__dirname, '../site')));
 var port = 3000;
 
 app.disable('x-powered-by');
