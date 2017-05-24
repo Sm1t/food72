@@ -7,7 +7,7 @@ const defaultDishes = new testDefaultRoutes();
 
 defaultDishes.router.get('/:id/comments', async(req, res, next) => {
 	try {
-		const comments = await Comment.find({dish: req.params.id});
+		const comments = await Comment.find({dish: req.params.id}).populate('user');
 		return res.json(comments);
 	} catch(err) {
 		next(err);

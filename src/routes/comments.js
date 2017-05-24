@@ -6,7 +6,8 @@ const defaultComments = new testDefaultRoutes({
 	postMiddlewares: [
 		passport.authenticate('jwt', {session: false})
 	],
-	canRepeated: true
+	canRepeated: true,
+	populate: 'user'
 });
 defaultComments.init(Comment, 'comments');
 
