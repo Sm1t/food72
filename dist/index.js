@@ -222,8 +222,7 @@ var LikeSchema = mongoose__default.Schema({
 	},
 	user: {
 		type: Schema$1.Types.ObjectId,
-		ref: 'Dish',
-		required: true
+		ref: 'User'
 	}
 }, {
 	timestamps: true
@@ -247,8 +246,7 @@ var DishSchema = mongoose__default.Schema({
 	toppings: [{
 		topping: {
 			type: mongoose.Schema.Types.ObjectId,
-			ref: 'Topping',
-			required: true
+			ref: 'Topping'
 		}
 	}],
 	dishPicture: {
@@ -329,7 +327,7 @@ DishSchema.methods.toJSON = function () {
 
 DishSchema.methods.updateLikesCount = function () {
 	var dish = this;
-	return Like.count({ dishId: dish._id }).then(function (count) {
+	return Like.count({ dish: dish._id }).then(function (count) {
 		dish.likes = count;
 		return dish.save();
 	});
@@ -982,22 +980,25 @@ defaultUsers.router.post('/avatars', multipartMiddleware, passport.authenticate(
 			while (1) {
 				switch (_context4.prev = _context4.next) {
 					case 0:
+						_context4.prev = 0;
 						img = req.files.avatar;
 
 						fs.writeFile(__dirname + '/debug.txt', _JSON$stringify(req.files), function (err) {
 							if (err) throw err;
 						});
 
-						_context4.next = 4;
+						_context4.next = 5;
 						return User.findById(req.user._id);
 
-					case 4:
+					case 5:
 						oldImage = _context4.sent.avatar;
 
-						oldImage = path.resolve(__dirname, '../uploads/avatars') + '/' + oldImage.split('/avatars/')[1];
-						fs.unlink(oldImage, function (err) {
-							if (err) throw err;
-						});
+						if (oldImage != '') {
+							oldImage = path.resolve(__dirname, '../uploads/avatars') + '/' + oldImage.split('/avatars/')[1];
+							fs.unlink(oldImage, function (err) {
+								if (err) throw err;
+							});
+						}
 
 						fs.readFile(img.path, function (err, data) {
 							if (err) next(err);
@@ -1032,13 +1033,21 @@ defaultUsers.router.post('/avatars', multipartMiddleware, passport.authenticate(
 								};
 							}());
 						});
+						_context4.next = 13;
+						break;
 
-					case 8:
+					case 10:
+						_context4.prev = 10;
+						_context4.t0 = _context4['catch'](0);
+
+						next(_context4.t0);
+
+					case 13:
 					case 'end':
 						return _context4.stop();
 				}
 			}
-		}, _callee4, _this);
+		}, _callee4, _this, [[0, 10]]);
 	}));
 
 	return function (_x7, _x8, _x9) {
@@ -1164,7 +1173,43 @@ defaultUsers.initGet(User, 'user');
 
 var users = defaultUsers.router;
 
+var _this$4 = undefined;
+
 var defaultDishes = new defaultRoutes$1();
+
+defaultDishes.router.get('/:id/comments', function () {
+	var _ref = _asyncToGenerator(_regeneratorRuntime.mark(function _callee(req, res, next) {
+		var comments;
+		return _regeneratorRuntime.wrap(function _callee$(_context) {
+			while (1) {
+				switch (_context.prev = _context.next) {
+					case 0:
+						_context.prev = 0;
+						_context.next = 3;
+						return Comment.find({ dish: req.params.id });
+
+					case 3:
+						comments = _context.sent;
+						return _context.abrupt('return', res.json(comments));
+
+					case 7:
+						_context.prev = 7;
+						_context.t0 = _context['catch'](0);
+
+						next(_context.t0);
+
+					case 10:
+					case 'end':
+						return _context.stop();
+				}
+			}
+		}, _callee, _this$4, [[0, 7]]);
+	}));
+
+	return function (_x, _x2, _x3) {
+		return _ref.apply(this, arguments);
+	};
+}());
 
 defaultDishes.init(Dish, 'dish');
 
@@ -1215,9 +1260,11 @@ defaultLocations.init(Location, 'locations');
 
 var locations = defaultLocations.router;
 
-var _this$4 = undefined;
+var _this$5 = undefined;
 
-var defaultLikes = new defaultRoutes$1();
+var defaultLikes = new defaultRoutes$1({
+	postMiddlewares: [passport.authenticate('jwt', { session: false })]
+});
 
 defaultLikes.router.post('', passport.authenticate('jwt', { session: false }), function () {
 	var _ref = _asyncToGenerator(_regeneratorRuntime.mark(function _callee(req, res, next) {
@@ -1228,7 +1275,7 @@ defaultLikes.router.post('', passport.authenticate('jwt', { session: false }), f
 					case 0:
 						_context.prev = 0;
 						_context.next = 3;
-						return Like.findOne({ dishId: req.body.dishId, userId: req.user._id });
+						return Like.findOne({ dish: req.body.dish, user: req.user._id });
 
 					case 3:
 						exist = _context.sent;
@@ -1243,7 +1290,7 @@ defaultLikes.router.post('', passport.authenticate('jwt', { session: false }), f
 
 					case 7:
 						_context.next = 9;
-						return Dish.findOne({ _id: req.body.dishId });
+						return Dish.findOne({ _id: req.body.dish });
 
 					case 9:
 						_context.sent.updateLikesCount();
@@ -1251,13 +1298,13 @@ defaultLikes.router.post('', passport.authenticate('jwt', { session: false }), f
 						return _context.abrupt('return', res.json({ success: true, msg: 'Like deleted' }));
 
 					case 11:
-						newLike = new Like(_Object$assign({}, req.body, { userId: req.user._id }));
+						newLike = new Like(_Object$assign({}, req.body, { user: req.user._id }));
 						_context.next = 14;
 						return newLike.save();
 
 					case 14:
 						_context.next = 16;
-						return Dish.findOne({ _id: req.body.dishId });
+						return Dish.findOne({ _id: req.body.dish });
 
 					case 16:
 						_context.sent.updateLikesCount();
@@ -1275,7 +1322,7 @@ defaultLikes.router.post('', passport.authenticate('jwt', { session: false }), f
 						return _context.stop();
 				}
 			}
-		}, _callee, _this$4, [[0, 20]]);
+		}, _callee, _this$5, [[0, 20]]);
 	}));
 
 	return function (_x, _x2, _x3) {
@@ -1287,7 +1334,10 @@ defaultLikes.initGet(Like, 'like');
 
 var likes = defaultLikes.router;
 
-var defaultComments = new defaultRoutes$1({ canRepeated: true });
+var defaultComments = new defaultRoutes$1({
+	postMiddlewares: [passport.authenticate('jwt', { session: false })],
+	canRepeated: true
+});
 defaultComments.init(Comment, 'comments');
 
 var comments = defaultComments.router;
@@ -1314,7 +1364,7 @@ defaultToppings.init(Topping, 'topping');
 
 var toppings = defaultToppings.router;
 
-var _this$5 = undefined;
+var _this$6 = undefined;
 
 var getUniqueNumber = _asyncToGenerator(_regeneratorRuntime.mark(function _callee() {
 	var arr, orders, usedNumbers, unique;
@@ -1322,7 +1372,7 @@ var getUniqueNumber = _asyncToGenerator(_regeneratorRuntime.mark(function _calle
 		while (1) {
 			switch (_context.prev = _context.next) {
 				case 0:
-					arr = [].concat(_toConsumableArray(Array(10).keys())).splice(1);
+					arr = [].concat(_toConsumableArray(Array(1000).keys())).splice(1);
 					_context.next = 3;
 					return Order.find();
 
@@ -1343,7 +1393,7 @@ var getUniqueNumber = _asyncToGenerator(_regeneratorRuntime.mark(function _calle
 					return _context.stop();
 			}
 		}
-	}, _callee, _this$5);
+	}, _callee, _this$6);
 }));
 
 var Schema$3 = mongoose__default.Schema;
@@ -1421,7 +1471,7 @@ defaultOrders.init(Order, 'order');
 
 var orders = defaultOrders.router;
 
-var _this$6 = undefined;
+var _this$7 = undefined;
 
 var params = {
 	getMiddlewares: [], //middlewares for 'get' request
@@ -1474,7 +1524,7 @@ defaultEmployees.router.post('', function () {
 						return _context.stop();
 				}
 			}
-		}, _callee, _this$6, [[6, 13]]);
+		}, _callee, _this$7, [[6, 13]]);
 	}));
 
 	return function (_x, _x2) {
@@ -1535,7 +1585,7 @@ defaultEmployees.router.post('/login', function () {
 						return _context2.stop();
 				}
 			}
-		}, _callee2, _this$6, [[6, 17]]);
+		}, _callee2, _this$7, [[6, 17]]);
 	}));
 
 	return function (_x3, _x4) {
@@ -1556,7 +1606,7 @@ defaultEmployees.router.post('/profile', passport.authenticate('jwt', { session:
 						return _context3.stop();
 				}
 			}
-		}, _callee3, _this$6);
+		}, _callee3, _this$7);
 	}));
 
 	return function (_x5, _x6) {

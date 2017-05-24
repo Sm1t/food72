@@ -10,8 +10,7 @@ const LikeSchema = mongoose.Schema({
 	},
 	user: {
 		type: Schema.Types.ObjectId,
-		ref: 'Dish',
-		required: true
+		ref: 'User'
 	},
 }, {
 	timestamps: true

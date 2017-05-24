@@ -16,8 +16,7 @@ const DishSchema = mongoose.Schema({
 		{
 			topping: {
 				type: Schema.Types.ObjectId,
-				ref: 'Topping',
-				required: true
+				ref: 'Topping'
 			}
 		}
 	],
@@ -102,7 +101,7 @@ DishSchema.methods.toJSON = function() {
 
 DishSchema.methods.updateLikesCount = function() {
 	const dish = this;
-	return Like.count({dishId: dish._id}).then(count => {
+	return Like.count({dish: dish._id}).then(count => {
 		dish.likes = count;
 		return dish.save();
 	});
