@@ -4,7 +4,7 @@ const { Schema } = mongoose;
 const MenuSchema = mongoose.Schema({
 	dishes: [
 		{
-			dishId: {
+			dish: {
 				type: Schema.Types.ObjectId,
 				ref: 'Dish',
 				required: true

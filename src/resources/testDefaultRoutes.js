@@ -70,7 +70,7 @@ export default class defaultRoutes {
 				}
 
 				if (req.user && req.user._id) {
-					var elem = new model(Object.assign(req.body, {userId: req.user._id}));
+					var elem = new model(Object.assign(req.body, {user: req.user._id}));
 				} else {
 					var elem = new model(req.body);
 				}

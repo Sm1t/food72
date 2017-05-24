@@ -215,12 +215,12 @@ var Schema$1 = mongoose__default.Schema;
 
 
 var LikeSchema = mongoose__default.Schema({
-	dishId: {
+	dish: {
 		type: Schema$1.Types.ObjectId,
 		ref: 'Dish',
 		required: true
 	},
-	userId: {
+	user: {
 		type: Schema$1.Types.ObjectId,
 		ref: 'Dish',
 		required: true
@@ -230,7 +230,7 @@ var LikeSchema = mongoose__default.Schema({
 });
 
 LikeSchema.methods.toJSON = function () {
-	return _.pick(this, ['dishId', 'userId']);
+	return _.pick(this, ['dish', 'user']);
 };
 
 var Like = mongoose__default.model('Like', LikeSchema);
@@ -245,7 +245,7 @@ var DishSchema = mongoose__default.Schema({
 		type: String
 	},
 	toppings: [{
-		toppingId: {
+		topping: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: 'Topping',
 			required: true
@@ -374,12 +374,12 @@ var updateRating = (function () {
 })();
 
 var CommentSchema = mongoose__default.Schema({
-	dishId: {
+	dish: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: 'Dish',
 		required: true
 	},
-	userId: {
+	user: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: 'User'
 	},
@@ -396,7 +396,7 @@ var CommentSchema = mongoose__default.Schema({
 });
 
 CommentSchema.post('save', function (next) {
-	return updateRating(this.dishId, this.rating).catch(next);
+	return updateRating(this.dish, this.rating).catch(next);
 });
 
 var Comment = mongoose__default.model('Comment', CommentSchema);
@@ -716,7 +716,7 @@ var defaultRoutes$1 = function () {
 								case 7:
 
 									if (req.user && req.user._id) {
-										elem = new model(_Object$assign(req.body, { userId: req.user._id }));
+										elem = new model(_Object$assign(req.body, { user: req.user._id }));
 									} else {
 										elem = new model(req.body);
 									}
@@ -1578,7 +1578,7 @@ app.use(cors());
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/static', express.static(path.join(__dirname + '/site')));
+app.use('/static', express.static(path.join(__dirname + '../site')));
 var port = 3000;
 
 app.disable('x-powered-by');

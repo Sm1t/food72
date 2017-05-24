@@ -3,12 +3,12 @@ import { Schema } from 'mongoose';
 import updateRating from '../helpers/updateRating';
 
 const CommentSchema = mongoose.Schema({
-	dishId: {
+	dish: {
 		type: Schema.Types.ObjectId,
 		ref: 'Dish',
 		required: true
 	},
-	userId: {
+	user: {
 		type: Schema.Types.ObjectId,
 		ref: 'User'
 	},
@@ -26,7 +26,7 @@ const CommentSchema = mongoose.Schema({
 
 
 CommentSchema.post('save', function(next) {
-	return updateRating(this.dishId, this.rating)
+	return updateRating(this.dish, this.rating)
 	.catch(next);
 });
 

@@ -14,7 +14,7 @@ const DishSchema = mongoose.Schema({
 	},
 	toppings: [
 		{
-			toppingId: {
+			topping: {
 				type: Schema.Types.ObjectId,
 				ref: 'Topping',
 				required: true
