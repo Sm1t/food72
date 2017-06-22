@@ -15,7 +15,7 @@ import comments from './routes/comments';
 import toppings from './routes/toppings';
 import orders from './routes/orders';
 import employees from './routes/employees';
-import Topping from './models/topping';
+import qrs from './routes/qrs';
 
 
 
@@ -53,6 +53,7 @@ app.use('/comments', comments);
 app.use('/toppings', toppings);
 app.use('/orders', orders);
 app.use('/employees', employees);
+app.use('/qrs', qrs);
 
 app.use((req, res, next) => {
 	return res.status(404).json({msg: '404 Not Found'});
