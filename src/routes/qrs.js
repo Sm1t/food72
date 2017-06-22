@@ -26,7 +26,7 @@ defaultQrs.router.post('/pictures', multipartMiddleware, async(req, res, next) =
 			})
 		})
 	} catch(err) {
-		next(err);
+		return res.status(500).json({success: false, msg: err.name, log: err});
 	}
 })
 
