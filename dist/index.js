@@ -20,6 +20,7 @@ var jwt = _interopDefault(require('jsonwebtoken'));
 var _classCallCheck = _interopDefault(require('babel-runtime/helpers/classCallCheck'));
 var _createClass = _interopDefault(require('babel-runtime/helpers/createClass'));
 var _toConsumableArray = _interopDefault(require('babel-runtime/helpers/toConsumableArray'));
+var multipart = _interopDefault(require('connect-multiparty'));
 
 var config = {
 	database: 'mongodb://sm1t:34ezezin@ds145299.mlab.com:45299/food72',
@@ -858,8 +859,8 @@ var defaultRoutes$1 = function () {
 
 var _this = undefined;
 
-var multipart = require('connect-multiparty');
-var multipartMiddleware = multipart();
+var multipart$1 = require('connect-multiparty');
+var multipartMiddleware = multipart$1();
 
 var defaultUsers = new defaultRoutes$1();
 
@@ -1622,6 +1623,150 @@ defaultEmployees.initPut(Employee, 'employees');
 
 var employees = defaultEmployees.router;
 
+var QrSchema = mongoose__default.Schema({
+	number: {
+		type: String,
+		required: true
+	},
+	name: {
+		type: String,
+		required: true
+	},
+	category: {
+		type: String,
+		required: true
+	},
+	date: {
+		type: String,
+		required: true
+	},
+	receipt: {
+		type: String,
+		required: true
+	},
+	comment: {
+		type: String,
+		required: true
+	},
+	status: {
+		type: String,
+		required: true
+	},
+	unit: {
+		type: String,
+		required: true
+	},
+	auditory: {
+		type: String,
+		required: true
+	},
+	type: {
+		type: String,
+		required: true
+	},
+	picture: {
+		type: String,
+		default: ''
+	}
+});
+
+var Qr = mongoose__default.model('Qr', QrSchema);
+
+var _this$8 = undefined;
+
+var multipartMiddleware$1 = multipart();
+
+var defaultQrs = new defaultRoutes$1();
+defaultQrs.initPost(Qr, 'qr');
+
+defaultQrs.router.post('/pictures', multipartMiddleware$1, function () {
+	var _ref = _asyncToGenerator(_regeneratorRuntime.mark(function _callee2(req, res, next) {
+		var img;
+		return _regeneratorRuntime.wrap(function _callee2$(_context2) {
+			while (1) {
+				switch (_context2.prev = _context2.next) {
+					case 0:
+						console.log(req.body.id);
+						img = req.files.picture;
+
+						try {
+							fs.readFile(img.path, function (err, data) {
+								if (err) next(err);
+								var way = path.resolve(__dirname, '../uploads/pictures') + '/' + img.originalFilename;
+								fs.writeFile(way, data, function () {
+									var _ref2 = _asyncToGenerator(_regeneratorRuntime.mark(function _callee(err) {
+										var link;
+										return _regeneratorRuntime.wrap(function _callee$(_context) {
+											while (1) {
+												switch (_context.prev = _context.next) {
+													case 0:
+														if (err) next(err);
+														link = 'http://arusremservis.ru/qrs/pictures/' + img.originalFilename;
+														_context.next = 4;
+														return Qr.findOneAndUpdate({ _id: req.body.id }, { $set: {
+																picture: link
+															} });
+
+													case 4:
+														res.json({ success: true, link: link });
+
+													case 5:
+													case 'end':
+														return _context.stop();
+												}
+											}
+										}, _callee, _this$8);
+									}));
+
+									return function (_x4) {
+										return _ref2.apply(this, arguments);
+									};
+								}());
+							});
+						} catch (err) {
+							next(err);
+						}
+
+					case 3:
+					case 'end':
+						return _context2.stop();
+				}
+			}
+		}, _callee2, _this$8);
+	}));
+
+	return function (_x, _x2, _x3) {
+		return _ref.apply(this, arguments);
+	};
+}());
+
+defaultQrs.router.get('/pictures/:img', function () {
+	var _ref3 = _asyncToGenerator(_regeneratorRuntime.mark(function _callee3(req, res) {
+		return _regeneratorRuntime.wrap(function _callee3$(_context3) {
+			while (1) {
+				switch (_context3.prev = _context3.next) {
+					case 0:
+						try {
+							res.sendFile(path.resolve(__dirname, '../uploads/pictures') + '/' + req.params.img);
+						} catch (err) {
+							res.send(err);
+						}
+
+					case 1:
+					case 'end':
+						return _context3.stop();
+				}
+			}
+		}, _callee3, _this$8);
+	}));
+
+	return function (_x5, _x6) {
+		return _ref3.apply(this, arguments);
+	};
+}());
+
+var qrs = defaultQrs.router;
+
 var app = express();
 var bodyParser = require('body-parser');
 Passport(passport);
@@ -1656,6 +1801,7 @@ app.use('/comments', comments);
 app.use('/toppings', toppings);
 app.use('/orders', orders);
 app.use('/employees', employees);
+app.use('/qrs', qrs);
 
 app.use(function (req, res, next) {
 	return res.status(404).json({ msg: '404 Not Found' });
