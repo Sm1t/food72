@@ -1686,7 +1686,7 @@ defaultQrs.router.post('/pictures', multipartMiddleware$1, function () {
 			while (1) {
 				switch (_context2.prev = _context2.next) {
 					case 0:
-						console.log(req.body.id);
+						console.log(req.headers['id']);
 						img = req.files.picture;
 
 						try {
@@ -1703,7 +1703,7 @@ defaultQrs.router.post('/pictures', multipartMiddleware$1, function () {
 														if (err) next(err);
 														link = 'http://arusremservis.ru/qrs/pictures/' + img.originalFilename;
 														_context.next = 4;
-														return Qr.findOneAndUpdate({ _id: req.body.id }, { $set: {
+														return Qr.findOneAndUpdate({ _id: req.headers['id'] }, { $set: {
 																picture: link
 															} });
 
