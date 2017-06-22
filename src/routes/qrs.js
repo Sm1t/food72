@@ -14,10 +14,10 @@ defaultQrs.router.post('/pictures', multipartMiddleware, async(req, res, next) =
 	const img = req.files.picture;
 	try {
 		fs.readFile(img.path, (err, data) => {
-			if (err) return res.send(err);
+			if (err) next(err);
 			const way = path.resolve(__dirname, '../uploads/pictures') + '/' + img.originalFilename;
 			fs.writeFile(way, data, async(err) => {
-				if (err) return res.send(err);
+				if (err) next(err);
 				const link = 'http://arusremservis.ru/qrs/pictures/' + img.originalFilename;
 				await Qr.findOneAndUpdate({_id: req.headers['id']}, {$set: {
 					picture: link
@@ -26,7 +26,7 @@ defaultQrs.router.post('/pictures', multipartMiddleware, async(req, res, next) =
 			})
 		})
 	} catch(err) {
-		return res.status(500).send(err);
+		next(err);
 	}
 })
 
