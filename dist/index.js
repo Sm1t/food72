@@ -1464,9 +1464,7 @@ OrderSchema.methods.toJSON = function () {
 var Order = mongoose__default.model('Order', OrderSchema);
 
 var defaultOrders = new defaultRoutes$1({
-	//postMiddlewares: [
-	//	passport.authenticate('jwt', {session: false})
-	//],
+	postMiddlewares: [passport.authenticate('jwt', { session: false })],
 	canRepeated: true,
 	populate: 'user dishes.dish'
 });

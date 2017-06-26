@@ -68,7 +68,7 @@ export default class defaultRoutes {
 						return res.status(400).json({success: false, msg: `${modelName} aready exist`});
 					}
 				}
-
+				
 				if (req.user && req.user._id) {
 					var elem = new model(Object.assign(req.body, {user: req.user._id}));
 				} else {

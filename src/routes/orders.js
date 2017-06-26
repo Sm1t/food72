@@ -3,9 +3,9 @@ import Order from '../models/order';
 import passport from 'passport';
 
 const defaultOrders = new testDefaultRoutes({
-	//postMiddlewares: [
-	//	passport.authenticate('jwt', {session: false})
-	//],
+	postMiddlewares: [
+		passport.authenticate('jwt', {session: false})
+	],
 	canRepeated: true,
 	populate: 'user dishes.dish'
 });
